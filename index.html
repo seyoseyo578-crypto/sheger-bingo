@@ -1,78 +1,310 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
-    <meta charset="UTF-8">
-    <title>ሸገር ቢንጎ</title>
-    <style>
-        :root { --bg: #ffffff; --text: #000000; --card: rgba(255,255,255,0.8); }
-        body.dark { --bg: #1a1a1a; --text: #ffffff; --card: rgba(45,45,45,0.8); }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; text-align: center; }
-        .header { display: flex; justify-content: space-between; padding: 15px; background: var(--card); }
-        #board-container { background: url('logo.png') no-repeat center center; background-size: contain; padding: 20px; }
-        .cell { width: 35px; height: 35px; border: 1px solid #777; display: inline-block; border-radius: 50%; }
-        .called { background-color: #000 !important; color: white !important; }
-        #menu-panel { display: none; background: var(--card); padding: 20px; position: fixed; right: 0; width: 300px; height: 100%; border: 1px solid #ccc; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sheger Bingo</title>
+
+<style>
+*{
+ margin:0;
+ padding:0;
+ box-sizing:border-box;
+ font-family:Arial,sans-serif;
+}
+
+body{
+ background:#f2f2f2;
+ color:#222;
+ transition:.3s;
+}
+
+.dark{
+ background:#111;
+ color:white;
+}
+
+header{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ padding:15px;
+ background:#fff;
+}
+
+.dark header{
+ background:#222;
+}
+
+.logo{
+ width:70px;
+ height:70px;
+ object-fit:contain;
+ border-radius:50%;
+}
+
+.menu{
+ font-size:30px;
+ cursor:pointer;
+}
+
+.container{
+ padding:15px;
+ text-align:center;
+}
+
+.balance{
+ font-size:20px;
+ margin:10px;
+}
+
+button{
+ padding:10px 15px;
+ border:none;
+ border-radius:8px;
+ cursor:pointer;
+ margin:5px;
+}
+
+.plus{
+ font-size:30px;
+ width:60px;
+ height:60px;
+ border-radius:50%;
+ background:#008cff;
+ color:white;
+}
+
+.bingo-card{
+ display:grid;
+ grid-template-columns:repeat(5,50px);
+ gap:5px;
+ justify-content:center;
+ margin:20px auto;
+}
+
+.cell{
+ width:50px;
+ height:50px;
+ border:1px solid #777;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ background:white;
+ font-weight:bold;
+}
+
+.dark .cell{
+ background:#333;
+ color:white;
+}
+
+.head{
+ background:#008cff;
+ color:white;
+}
+
+.free{
+ background:#ffcc00;
+}
+
+.called{
+ display:flex;
+ flex-wrap:wrap;
+ gap:8px;
+ justify-content:center;
+ margin:15px;
+}
+
+.circle{
+ width:40px;
+ height:40px;
+ border-radius:50%;
+ background:#008cff;
+ color:white;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+}
+
+.hidden{
+ display:none;
+}
+
+.panel{
+ background:white;
+ padding:15px;
+ border-radius:10px;
+ margin:10px;
+}
+
+.dark .panel{
+ background:#222;
+}
+
+</style>
 </head>
+
 <body>
 
-<div class="header">
-    <div id="prize-pool">ሽልማት: $0</div>
-    <div onclick="document.getElementById('menu-panel').style.display='block'">☰ ሜኑ</div>
+<header>
+
+<img src="logo.png" class="logo">
+
+<h2>Sheger Bingo</h2>
+
+<div class="menu" onclick="openMenu()">☰</div>
+
+</header>
+
+
+<div class="container">
+
+<div class="balance">
+ሽልማት: <b>$0</b>
 </div>
 
-<div id="menu-panel">
-    <button onclick="this.parentElement.style.display='none'">X</button>
-    <h3>Settings</h3>
-    <button onclick="document.body.classList.toggle('dark')">Dark/Light Mode</button>
-    <h4>Deposit</h4>
-    <p>ቴሌብር: SUED +251964796846</p>
-    <p>ንግድ ባንክ: SIED MEBRAHTU 1000615139126</p>
-    <h4>Withdraw</h4>
-    <button onclick="alert('ወጪው ለባለቤቱ ተልኳል')">Withdraw (>200 ብር)</button>
+
+<div id="menu" class="panel hidden">
+
+<h3>Settings</h3>
+
+<button onclick="darkMode()">
+Dark / Light Mode
+</button>
+
+<h3>Deposit</h3>
+
+<p>Telebirr: SUED<br>
++251964796846</p>
+
+<p>
+ንግድ ባንክ:<br>
+SIED MEBRAHTU<br>
+1000615139126
+</p>
+
+
+<h3>Withdraw</h3>
+
+<p>Minimum: 200 ብር</p>
+
 </div>
+
 
 <h2>BINGO</h2>
-<div id="board"></div>
-<button id="plus-btn" onclick="addPlayer()">+ ካርቴላ ያክሉ</button>
-<div id="cards-container"></div>
 
+<div id="card" class="bingo-card"></div>
+
+
+<button class="plus" onclick="showCards()">
++
+</button>
+
+
+<div id="cards" class="panel hidden">
+
+<h3>ካርቴላ ምረጥ</h3>
+
+<div id="list"></div>
+
+</div>
+
+
+<h3>የተጠሩ ቁጥሮች</h3>
+
+<div id="called" class="called"></div>
+
+
+</div>
 <script>
-    let players = 1;
-    function updateStats() {
-        document.getElementById('prize-pool').innerText = "ሽልማት: $" + (players * 10 * 0.75);
-    }
 
-    function addPlayer() {
-        if(players < 250) {
-            players++;
-            renderCard(players);
-            updateStats();
-        }
-    }
+function openMenu(){
+ document.getElementById("menu").classList.toggle("hidden");
+}
 
-    // 250 ካርቴላዎችን ለማመንጨት ተግባር
-    function renderCard(id) {
-        let container = document.getElementById('cards-container');
-        let card = document.createElement('div');
-        card.innerHTML = `<h4>ካርቴላ #${id}</h4>`;
-        let grid = document.createElement('div');
-        // እዚህ ጋር የቢንጎ ቁጥሮችን በ 5x5 ማትሪክስ መሃሉን 'FREE' በማድረግ ይፈጥራል
-        // (ለኮድ አጭርነት የሎጅኩን መዋቅር አሳይቻለሁ)
-        container.appendChild(card);
-    }
 
-    // የቁጥር መጥሪያ ሎጅክ
-    let drawn = [];
-    setInterval(() => {
-        let num = Math.floor(Math.random() * 75) + 1;
-        if(!drawn.includes(num)) {
-            drawn.push(num);
-            document.getElementById('current-num').innerText = num;
-        }
-    }, 3000);
-    
-    updateStats();
+function darkMode(){
+ document.body.classList.toggle("dark");
+}
+
+
+// 1 ካርቴላ መፍጠር
+function createCard(){
+
+ let card=document.getElementById("card");
+ card.innerHTML="";
+
+ let letters=["B","I","N","G","O"];
+
+ letters.forEach(letter=>{
+   let div=document.createElement("div");
+   div.className="cell head";
+   div.innerHTML=letter;
+   card.appendChild(div);
+ });
+
+
+ let nums=[];
+
+ for(let i=1;i<=75;i++){
+   nums.push(i);
+ }
+
+
+ for(let i=0;i<24;i++){
+
+   let div=document.createElement("div");
+   div.className="cell";
+
+   if(i===12){
+    div.innerHTML="FREE";
+    div.className="cell free";
+   }
+   else{
+    let n=Math.floor(Math.random()*nums.length);
+    div.innerHTML=nums[n];
+    nums.splice(n,1);
+   }
+
+   card.appendChild(div);
+ }
+
+}
+
+
+// 1-250 ካርቴላ ዝርዝር
+function showCards(){
+
+ let box=document.getElementById("cards");
+
+ box.classList.toggle("hidden");
+
+ let list=document.getElementById("list");
+
+ list.innerHTML="";
+
+ for(let i=1;i<=250;i++){
+
+  let btn=document.createElement("button");
+
+  btn.innerHTML="ካርቴላ "+i;
+
+  btn.onclick=function(){
+    createCard();
+  };
+
+  list.appendChild(btn);
+
+ }
+
+}
+
+
+createCard();
+
 </script>
+
 </body>
 </html>
