@@ -99,7 +99,7 @@ function callNumber(){
 
 
     // table ላይ ማጥቆር
-
+markCard(number);
     let cells=document.querySelectorAll("#bingoTable td");
 
 
