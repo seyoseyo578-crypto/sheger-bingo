@@ -2,41 +2,48 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <title>ሸገር ቢንጎ - የጨዋታ ማሽን</title>
+    <title>ሸገር ቢንጎ</title>
     <style>
-        body { text-align: center; font-family: sans-serif; background-color: #f4f4f9; padding: 20px; }
-        #number-display { font-size: 80px; color: #d32f2f; font-weight: bold; border: 5px solid #d32f2f; display: inline-block; padding: 20px 40px; border-radius: 15px; margin: 20px; background: white; }
-        .controls { margin-top: 20px; }
-        button { padding: 15px 30px; font-size: 20px; cursor: pointer; border: none; border-radius: 8px; margin: 10px; color: white; }
-        #start-btn { background-color: #28a745; }
-        #bingo-btn { background-color: #007bff; }
+        body { 
+            text-align: center; font-family: sans-serif; padding: 20px;
+            background: url('https://raw.githubusercontent.com/seyoseyo578-crypto/sheger-bingo/main/logo.png') no-repeat center center fixed;
+            background-size: contain; background-color: rgba(255, 255, 255, 0.8); background-blend-mode: lighten;
+        }
+        table { margin: 20px auto; border-collapse: collapse; background: rgba(255, 255, 255, 0.9); }
+        td { width: 40px; height: 40px; border: 1px solid #000; font-weight: bold; }
+        .called { background-color: #28a745; color: white; }
+        #current-num { font-size: 60px; color: #d32f2f; margin: 20px; }
     </style>
 </head>
 <body>
     <h1>ሸገር ቢንጎ ማሽን</h1>
-    <div id="number-display">--</div>
-    
-    <div class="controls">
-        <button id="start-btn" onclick="startDrawing()">ቁጥር ጥራ</button>
-        <button id="bingo-btn" onclick="checkBingo()">ቢንጎ!</button>
-    </div>
+    <div id="current-num">--</div>
+    <button onclick="drawNumber()" style="padding:10px 20px; font-size:18px;">ቁጥር ጥራ</button>
+    <table id="bingo-board"></table>
 
     <script>
-        let drawnNumbers = [];
-        function startDrawing() {
-            if (drawnNumbers.length >= 75) {
-                alert("ሁሉም 75 ቁጥሮች ወጥተዋል!");
-                return;
+        const board = document.getElementById('bingo-board');
+        const labels = ['B', 'I', 'N', 'G', 'O'];
+        let drawn = [];
+        
+        // ሰንጠረዡን መፍጠር
+        for (let i = 0; i < 15; i++) {
+            let row = board.insertRow();
+            for (let j = 0; j < 5; j++) {
+                let cell = row.insertCell();
+                let val = (j * 15) + i + 1;
+                cell.innerText = val;
+                cell.id = 'cell-' + val;
             }
-            let num;
-            do {
-                num = Math.floor(Math.random() * 75) + 1;
-            } while (drawnNumbers.includes(num));
-            drawnNumbers.push(num);
-            document.getElementById('number-display').innerText = num;
         }
-        function checkBingo() {
-            alert("ቢንጎ ተጫን! ስርዓቱ አሁን የካርቴላውን ትክክለኛነት እያረጋገጠ ነው...");
+
+        function drawNumber() {
+            if (drawn.length >= 75) return alert("ጨዋታው ተጠናቋል!");
+            let num;
+            do { num = Math.floor(Math.random() * 75) + 1; } while (drawn.includes(num));
+            drawn.push(num);
+            document.getElementById('current-num').innerText = num;
+            document.getElementById('cell-' + num).className = 'called';
         }
     </script>
 </body>
