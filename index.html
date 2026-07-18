@@ -4,19 +4,20 @@
     <meta charset="UTF-8">
     <title>ሸገር ቢንጎ</title>
     <style>
-        :root { --bg: #ffffff; --text: #000000; --card: rgba(255,255,255,0.8); }
-        body.dark { --bg: #1a1a1a; --text: #ffffff; --card: rgba(45,45,45,0.8); }
+        :root { --bg: #ffffff; --text: #000000; --card: rgba(255,255,255,0.7); }
+        body.dark { --bg: #1a1a1a; --text: #ffffff; --card: rgba(45,45,45,0.7); }
         body { background: var(--bg); color: var(--text); font-family: sans-serif; text-align: center; }
         
         .header { display: flex; justify-content: space-between; padding: 15px; background: var(--card); }
-        #board-container { background: url('logo.png') no-repeat center center; background-size: contain; padding: 20px; }
+        #board-container { background: url('logo.png') no-repeat center center; background-size: contain; padding: 20px; border: 2px solid #555; }
         .bingo-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 5px; }
         .cell { width: 35px; height: 35px; border: 1px solid #777; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--card); }
         .called { background-color: #000 !important; color: white !important; font-weight: bold; }
-        .owner-cell { border: 3px solid #d32f2f; } /* ለ 48 እና 68 */
+        .owner-cell { border: 3px solid #d32f2f; }
         
+        #current-num { font-size: 50px; font-weight: bold; color: #d32f2f; margin: 10px; }
         .controls { margin-top: 20px; }
-        #plus-btn { font-size: 30px; cursor: pointer; background: #28a745; color: white; border-radius: 50%; width: 50px; height: 50px; border: none; }
+        #plus-btn { font-size: 30px; cursor: pointer; background: #28a745; color: white; border-radius: 50%; width: 60px; height: 60px; border: none; }
     </style>
 </head>
 <body>
@@ -26,6 +27,8 @@
         <div id="prize-pool">ሽልማት: $0</div>
     </div>
 
+    <div id="current-num">--</div>
+
     <div id="board-container">
         <h2>BINGO</h2>
         <div id="board"></div>
@@ -33,7 +36,7 @@
 
     <div class="controls">
         <button id="plus-btn" onclick="addPlayer()">+</button>
-        <p>ካርቴላ ለመጨመር ይጫኑ</p>
+        <p>ካርቴላ ይጨምሩ</p>
     </div>
 
     <script>
@@ -75,6 +78,7 @@
             let num;
             do { num = Math.floor(Math.random() * 75) + 1; } while (drawn.includes(num));
             drawn.push(num);
+            document.getElementById('current-num').innerText = num;
             document.getElementById('cell-' + num).classList.add('called');
         }
         setInterval(autoDraw, 3000);
