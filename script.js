@@ -485,4 +485,10 @@ function sendWithdraw(){
 
 // START
 
-createCard();
+createCard();window.onload = function(){
+
+    createCard(1);
+
+};setInterval(function(){
+    callNumber();
+},5000);
