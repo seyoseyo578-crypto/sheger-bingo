@@ -477,7 +477,9 @@ function sendWithdraw(){
 
 
 }
-
+window.onload=function(){
+    createCard(1);
+};
 
 
 
