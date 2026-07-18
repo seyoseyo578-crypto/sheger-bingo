@@ -118,6 +118,23 @@ color:white;
 
 .free{
 background:#ffcc00;
+}.called{
+display:flex;
+flex-wrap:wrap;
+justify-content:center;
+gap:8px;
+margin:15px;
+}
+
+.circle{
+width:40px;
+height:40px;
+border-radius:50%;
+background:#008cff;
+color:white;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
 </style>
@@ -133,6 +150,22 @@ background:#ffcc00;
 <img src="logo.png" class="logo">
 
 <h2>Sheger Bingo</h2>
+  <div class="panel">
+
+<h3>🎱 Bingo Caller</h3>
+
+<h1 id="activeNumber">-</h1>
+
+<button onclick="callNumber()">
+ቁጥር ጥራ
+</button>
+
+</div>
+
+
+<h3>የተጠሩ ቁጥሮች</h3>
+
+<div id="called" class="called"></div>
 
 <div class="menu" onclick="openMenu()">☰</div>
 
@@ -346,4 +379,44 @@ document.getElementById("cardTitle").innerHTML=
 }
 
 
-createCard();
+createCard();let calledNumbers=[];
+
+
+function callNumber(){
+
+if(calledNumbers.length>=75){
+
+alert("ሁሉም ቁጥሮች ተጠርተዋል");
+
+return;
+
+}
+
+
+let num;
+
+
+do{
+
+num=Math.floor(Math.random()*75)+1;
+
+}
+while(calledNumbers.includes(num));
+
+
+calledNumbers.push(num);
+
+
+document.getElementById("activeNumber").innerHTML=num;
+
+
+let circle=document.createElement("div");
+
+circle.className="circle";
+
+circle.innerHTML=num;
+
+
+document.getElementById("called").appendChild(circle);
+
+}
