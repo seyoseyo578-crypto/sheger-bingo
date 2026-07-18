@@ -1,1 +1,103 @@
+/* --- መሰረታዊ ስታይል --- */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --card-bg: #f4f4f4;
+    --accent-color: #28a745;
+}
+
+body.dark {
+    --bg-color: #1a1a1a;
+    --text-color: #ffffff;
+    --card-bg: #2d2d2d;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: Arial, sans-serif;
+    margin: 0;
+    transition: background 0.3s, color 0.3s;
+}
+
+/* --- Header እና Logo --- */
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: var(--card-bg);
+}
+
+.logo { width: 50px; border-radius: 50%; }
+
+/* --- Menu Panel --- */
+#menu-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 250px;
+    height: 100%;
+    background: var(--card-bg);
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+
+/* --- Bingo Card Styling --- */
+#bingo-card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.card-view {
+    border: 2px solid #555;
+    padding: 10px;
+    background: var(--card-bg);
+    border-radius: 10px;
+}
+
+.bingo-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 40px);
+    gap: 5px;
+}
+
+.cell {
+    width: 40px;
+    height: 40px;
+    border: 1px solid #777;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    border-radius: 50%;
+}
+
+/* --- የተመረጡ ቁጥሮች (Marked) --- */
+.marked {
+    background-color: var(--accent-color) !important;
+    color: white;
+    font-weight: bold;
+}
+
+/* --- Buttons --- */
+button {
+    padding: 10px 15px;
+    cursor: pointer;
+    background: var(--accent-color);
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+#current-num {
+    font-size: 2rem;
+    color: #d32f2f;
+    text-align: center;
+    margin: 20px;
+}
 
