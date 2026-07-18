@@ -4,43 +4,62 @@
     <meta charset="UTF-8">
     <title>ሸገር ቢንጎ</title>
     <style>
-        body { 
-            text-align: center; font-family: sans-serif; padding: 20px;
-            background: url('logo.png') no-repeat center center fixed;
-            background-size: contain; background-color: rgba(255, 255, 255, 0.8); background-blend-mode: lighten;
-        }
-        table { margin: 20px auto; border-collapse: collapse; background: rgba(255, 255, 255, 0.9); }
-        td { width: 40px; height: 40px; border: 1px solid #000; font-weight: bold; }
+        :root { --bg: #ffffff; --text: #000000; --card: #f4f4f4; }
+        body.dark { --bg: #1a1a1a; --text: #ffffff; --card: #2d2d2d; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        
+        .header-stats { display: flex; justify-content: space-around; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 20px; }
+        .bingo-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 5px; }
+        .cell { width: 40px; height: 40px; border: 1px solid #555; display: flex; align-items: center; justify-content: center; border-radius: 5px; background: var(--card); }
         .called { background-color: #28a745; color: white; }
-        #current-num { font-size: 60px; color: #d32f2f; margin: 20px; font-weight: bold; }
+        .bingo-label { width: 40px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        
+        button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
-    <h1>ሸገር ቢንጎ ማሽን</h1>
-    <div id="current-num">--</div>
-    <button onclick="drawNumber()" style="padding:15px 30px; font-size:20px; cursor:pointer;">ቁጥር ጥራ</button>
-    <table id="bingo-board"></table>
+
+    <div class="header-stats">
+        <div>ዋጋ: $10</div>
+        <div>ተጫዋቾች: 1</div>
+        <div>ሽልማት: $20,000</div>
+    </div>
+
+    <button onclick="document.body.classList.toggle('dark')">Dark/Light Mode</button>
+
+    <h2>BINGO</h2>
+    <div id="board"></div>
 
     <script>
-        const board = document.getElementById('bingo-board');
-        let drawn = [];
-        for (let i = 0; i < 15; i++) {
-            let row = board.insertRow();
-            for (let j = 0; j < 5; j++) {
-                let cell = row.insertCell();
-                let val = (j * 15) + i + 1;
-                cell.innerText = val;
-                cell.id = 'cell-' + val;
+        const board = document.getElementById('board');
+        const labels = ['B', 'I', 'N', 'G', 'O'];
+        for (let i = 0; i < 5; i++) {
+            let rowDiv = document.createElement('div');
+            rowDiv.className = 'bingo-row';
+            let label = document.createElement('div');
+            label.className = 'bingo-label';
+            label.innerText = labels[i];
+            rowDiv.appendChild(label);
+            for (let j = 1; j <= 15; j++) {
+                let cell = document.createElement('div');
+                let num = (i * 15) + j;
+                cell.className = 'cell';
+                cell.id = 'cell-' + num;
+                cell.innerText = num;
+                rowDiv.appendChild(cell);
             }
+            board.appendChild(rowDiv);
         }
-        function drawNumber() {
-            if (drawn.length >= 75) return alert("ሁሉም ቁጥሮች ወጥተዋል!");
+
+        let drawn = [];
+        function autoDraw() {
+            if (drawn.length >= 75) return;
             let num;
             do { num = Math.floor(Math.random() * 75) + 1; } while (drawn.includes(num));
             drawn.push(num);
-            document.getElementById('current-num').innerText = num;
-            document.getElementById('cell-' + num).className = 'called';
+            document.getElementById('cell-' + num).classList.add('called');
         }
+        setInterval(autoDraw, 3000);
     </script>
 </body>
 </html>
