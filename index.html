@@ -6,40 +6,56 @@
     <style>
         :root { --bg: #ffffff; --text: #000000; --card: #f4f4f4; }
         body.dark { --bg: #1a1a1a; --text: #ffffff; --card: #2d2d2d; }
-        body { background: var(--bg); color: var(--text); font-family: sans-serif; text-align: center; margin: 0; padding: 10px; }
+        body { background: var(--bg) url('logo.png') no-repeat top center; background-size: 200px; color: var(--text); font-family: sans-serif; margin: 0; padding-top: 220px; }
         
-        .header-stats { display: flex; justify-content: space-around; background: var(--card); padding: 10px; border-radius: 10px; margin-bottom: 20px; }
+        .header { display: flex; justify-content: space-between; padding: 10px; background: var(--card); }
+        .stats { font-size: 14px; }
+        .menu-btn { cursor: pointer; font-size: 24px; }
+        
+        #menu-panel { display: none; position: fixed; top: 50px; right: 10px; background: var(--card); padding: 15px; border-radius: 10px; border: 1px solid #777; width: 250px; }
+        
         .bingo-row { display: flex; justify-content: center; gap: 5px; margin-bottom: 5px; }
-        .cell { width: 40px; height: 40px; border: 1px solid #555; display: flex; align-items: center; justify-content: center; border-radius: 5px; background: var(--card); }
+        .cell { width: 35px; height: 35px; border: 1px solid #555; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--card); }
         .called { background-color: #28a745; color: white; }
-        .bingo-label { width: 40px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
-        
-        button { padding: 10px 20px; cursor: pointer; margin-top: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="header-stats">
-        <div>ዋጋ: $10</div>
-        <div>ተጫዋቾች: 1</div>
-        <div>ሽልማት: $20,000</div>
+    <div class="header">
+        <div class="stats">
+            <div id="player-count">ተጫዋቾች: 10</div>
+            <div id="prize-pool">ሽልማት: $0</div>
+        </div>
+        <div class="menu-btn" onclick="toggleMenu()">☰</div>
     </div>
 
-    <button onclick="document.body.classList.toggle('dark')">Dark/Light Mode</button>
+    <div id="menu-panel">
+        <h3>ቅንብሮች (Settings)</h3>
+        <button onclick="document.body.classList.toggle('dark')">Dark/Light Mode</button>
+        <hr>
+        <h4>Deposit (ተቀማጭ)</h4>
+        <p>ቴሌብር: SUED +251964796846</p>
+        <p>ንግድ ባንክ: SIED MEBRAHTU 1000615139126</p>
+        <hr>
+        <h4>Withdraw (ማውጫ)</h4>
+        <p>ቢያንስ 200 ብር</p>
+        <button onclick="requestWithdraw()">Withdraw አድርግ</button>
+    </div>
 
     <h2>BINGO</h2>
     <div id="board"></div>
 
     <script>
+        // የሽልማት ቀመር: 75% ለተጫዋቾች፣ 25% ለባለቤቱ
+        let players = 10;
+        let cardPrice = 10;
+        let totalRevenue = players * cardPrice;
+        document.getElementById('prize-pool').innerText = "ሽልማት: $" + (totalRevenue * 0.75);
+
         const board = document.getElementById('board');
-        const labels = ['B', 'I', 'N', 'G', 'O'];
         for (let i = 0; i < 5; i++) {
             let rowDiv = document.createElement('div');
             rowDiv.className = 'bingo-row';
-            let label = document.createElement('div');
-            label.className = 'bingo-label';
-            label.innerText = labels[i];
-            rowDiv.appendChild(label);
             for (let j = 1; j <= 15; j++) {
                 let cell = document.createElement('div');
                 let num = (i * 15) + j;
@@ -49,6 +65,21 @@
                 rowDiv.appendChild(cell);
             }
             board.appendChild(rowDiv);
+        }
+
+        function toggleMenu() {
+            let menu = document.getElementById('menu-panel');
+            menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function requestWithdraw() {
+            let amount = prompt("የሚፈልጉትን መጠን ያስገቡ (ከ 200 ብር በላይ):");
+            if (amount >= 200) {
+                alert("ጥያቄዎ ለባለቤቱ ተልኳል!");
+                // እዚህ ጋር ቦቱ ለባለቤቱ ማሳወቂያ የሚልክበት ኮድ ይጨመራል
+            } else {
+                alert("ዝቅተኛው የወጪ መጠን 200 ብር ነው።");
+            }
         }
 
         let drawn = [];
