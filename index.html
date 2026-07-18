@@ -6,27 +6,24 @@
     <style>
         body { 
             text-align: center; font-family: sans-serif; padding: 20px;
-            background: url('https://raw.githubusercontent.com/seyoseyo578-crypto/sheger-bingo/main/logo.png') no-repeat center center fixed;
+            background: url('logo.png') no-repeat center center fixed;
             background-size: contain; background-color: rgba(255, 255, 255, 0.8); background-blend-mode: lighten;
         }
         table { margin: 20px auto; border-collapse: collapse; background: rgba(255, 255, 255, 0.9); }
         td { width: 40px; height: 40px; border: 1px solid #000; font-weight: bold; }
         .called { background-color: #28a745; color: white; }
-        #current-num { font-size: 60px; color: #d32f2f; margin: 20px; }
+        #current-num { font-size: 60px; color: #d32f2f; margin: 20px; font-weight: bold; }
     </style>
 </head>
 <body>
     <h1>ሸገር ቢንጎ ማሽን</h1>
     <div id="current-num">--</div>
-    <button onclick="drawNumber()" style="padding:10px 20px; font-size:18px;">ቁጥር ጥራ</button>
+    <button onclick="drawNumber()" style="padding:15px 30px; font-size:20px; cursor:pointer;">ቁጥር ጥራ</button>
     <table id="bingo-board"></table>
 
     <script>
         const board = document.getElementById('bingo-board');
-        const labels = ['B', 'I', 'N', 'G', 'O'];
         let drawn = [];
-        
-        // ሰንጠረዡን መፍጠር
         for (let i = 0; i < 15; i++) {
             let row = board.insertRow();
             for (let j = 0; j < 5; j++) {
@@ -36,9 +33,8 @@
                 cell.id = 'cell-' + val;
             }
         }
-
         function drawNumber() {
-            if (drawn.length >= 75) return alert("ጨዋታው ተጠናቋል!");
+            if (drawn.length >= 75) return alert("ሁሉም ቁጥሮች ወጥተዋል!");
             let num;
             do { num = Math.floor(Math.random() * 75) + 1; } while (drawn.includes(num));
             drawn.push(num);
