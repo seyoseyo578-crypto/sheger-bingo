@@ -23,7 +23,6 @@
 
     <script>
         let drawnNumbers = [];
-        
         function startDrawing() {
             if (drawnNumbers.length >= 75) {
                 alert("ሁሉም 75 ቁጥሮች ወጥተዋል!");
@@ -33,16 +32,12 @@
             do {
                 num = Math.floor(Math.random() * 75) + 1;
             } while (drawnNumbers.includes(num));
-            
             drawnNumbers.push(num);
             document.getElementById('number-display').innerText = num;
         }
-
         function checkBingo() {
-            // እዚህ የቢንጎ ማረጋገጫ ህግ ይገባል
             alert("ቢንጎ ተጫን! ስርዓቱ አሁን የካርቴላውን ትክክለኛነት እያረጋገጠ ነው...");
         }
     </script>
 </body>
 </html>
-
