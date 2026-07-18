@@ -139,3 +139,76 @@ setInterval(()=>{
     callNumber();
 
 },5000);
+let selectedCards=[];
+
+
+function openCards(){
+
+let box=document.getElementById("cardList");
+
+box.classList.toggle("hidden");
+
+
+let cards=document.getElementById("cards");
+
+cards.innerHTML="";
+
+
+for(let i=1;i<=250;i++){
+
+let btn=document.createElement("button");
+
+btn.innerHTML=""+i;
+
+btn.className="cardButton";
+
+
+btn.onclick=function(){
+
+selectCard(i,btn);
+
+};
+
+
+cards.appendChild(btn);
+
+}
+
+}
+
+
+
+
+function selectCard(number,button){
+
+
+if(selectedCards.includes(number)){
+
+selectedCards=
+selectedCards.filter(c=>c!==number);
+
+button.classList.remove("selectedCard");
+
+
+}else{
+
+
+selectedCards.push(number);
+
+button.classList.add("selectedCard");
+
+
+}
+
+
+
+document.getElementById("selectedCount")
+.innerHTML=selectedCards.length;
+
+
+
+document.getElementById("cardPrice")
+.innerHTML=selectedCards.length*10;
+
+
+}
