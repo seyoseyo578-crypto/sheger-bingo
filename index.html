@@ -135,6 +135,10 @@ color:white;
 display:flex;
 align-items:center;
 justify-content:center;
+}.marked{
+background:#00c853 !important;
+color:white;
+border:3px solid #008000;
 }
 
 </style>
@@ -418,5 +422,30 @@ circle.innerHTML=num;
 
 
 document.getElementById("called").appendChild(circle);
+checkBingo();  function checkBingo(){
+
+let cells=document.querySelectorAll("#card .cell:not(.head)");
+
+let count=0;
+
+
+cells.forEach(function(cell){
+
+if(cell.classList.contains("marked") || cell.classList.contains("free")){
+
+count++;
+
+}
+
+});
+
+
+if(count==25){
+
+alert("🎉 BINGO! አሸናፊ ነህ!");
+
+}
+
+}
 
 }
