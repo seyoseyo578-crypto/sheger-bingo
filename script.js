@@ -482,3 +482,84 @@ balance + " ብር";
 alert("Withdraw ጥያቄ ተልኳል ✅");
 
 }
+let calledNumbers=[];
+
+
+function startCaller(){
+
+
+if(calledNumbers.length>=75){
+
+alert("ሁሉም ቁጥሮች ተጠርተዋል");
+
+return;
+
+}
+
+
+
+let number;
+
+
+do{
+
+number=Math.floor(Math.random()*75)+1;
+
+}
+while(calledNumbers.includes(number));
+
+
+
+calledNumbers.push(number);
+
+
+
+let letter;
+
+
+if(number<=15){
+
+letter="B";
+
+}else if(number<=30){
+
+letter="I";
+
+}else if(number<=45){
+
+letter="N";
+
+}else if(number<=60){
+
+letter="G";
+
+}else{
+
+letter="O";
+
+}
+
+
+
+document.getElementById("activeNumber").innerHTML =
+letter+"-"+number;
+
+
+
+let box=document.getElementById("calledNumbers");
+
+
+let circle=document.createElement("span");
+
+circle.innerHTML =
+letter+"-"+number+" ";
+
+
+box.appendChild(circle);
+
+
+
+markCard(number);
+
+
+}
