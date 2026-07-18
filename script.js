@@ -329,5 +329,43 @@ cell.classList.add("marked");
 
 });
 
+ checkBingo();   
+
+}
+function checkBingo(){
+
+
+let cells=document.querySelectorAll(".bingoCell:not(.bingoHead)");
+
+let count=0;
+
+
+cells.forEach(cell=>{
+
+if(
+cell.classList.contains("marked") ||
+cell.classList.contains("free")
+){
+
+count++;
+
+}
+
+});
+
+
+
+if(count==25){
+
+
+document.getElementById("winMessage").innerHTML =
+"🎉 BINGO! አሸናፊ ነህ";
+
+
+document.getElementById("winPrize").innerHTML =
+100;
+
+
+}
 
 }
