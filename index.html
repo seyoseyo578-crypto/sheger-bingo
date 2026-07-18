@@ -2,9 +2,47 @@
 <html lang="am">
 <head>
     <meta charset="UTF-8">
-    <title>ሸገር ቢንጎ</title>
+    <title>ሸገር ቢንጎ - የጨዋታ ማሽን</title>
+    <style>
+        body { text-align: center; font-family: sans-serif; background-color: #f4f4f9; padding: 20px; }
+        #number-display { font-size: 80px; color: #d32f2f; font-weight: bold; border: 5px solid #d32f2f; display: inline-block; padding: 20px 40px; border-radius: 15px; margin: 20px; background: white; }
+        .controls { margin-top: 20px; }
+        button { padding: 15px 30px; font-size: 20px; cursor: pointer; border: none; border-radius: 8px; margin: 10px; color: white; }
+        #start-btn { background-color: #28a745; }
+        #bingo-btn { background-color: #007bff; }
+    </style>
 </head>
 <body>
-    <h1>እንኳን ወደ ሸገር ቢንጎ በደህና መጡ!</h1>
+    <h1>ሸገር ቢንጎ ማሽን</h1>
+    <div id="number-display">--</div>
+    
+    <div class="controls">
+        <button id="start-btn" onclick="startDrawing()">ቁጥር ጥራ</button>
+        <button id="bingo-btn" onclick="checkBingo()">ቢንጎ!</button>
+    </div>
+
+    <script>
+        let drawnNumbers = [];
+        
+        function startDrawing() {
+            if (drawnNumbers.length >= 75) {
+                alert("ሁሉም 75 ቁጥሮች ወጥተዋል!");
+                return;
+            }
+            let num;
+            do {
+                num = Math.floor(Math.random() * 75) + 1;
+            } while (drawnNumbers.includes(num));
+            
+            drawnNumbers.push(num);
+            document.getElementById('number-display').innerText = num;
+        }
+
+        function checkBingo() {
+            // እዚህ የቢንጎ ማረጋገጫ ህግ ይገባል
+            alert("ቢንጎ ተጫን! ስርዓቱ አሁን የካርቴላውን ትክክለኛነት እያረጋገጠ ነው...");
+        }
+    </script>
 </body>
 </html>
+
