@@ -236,8 +236,7 @@ document.getElementById("selectedCount")
 
 document.getElementById("cardPrice")
 .innerHTML=selectedCards.length*10;
-
-
+showSelectedCards();
 }
 function createMyCard(cardNumber){
 
@@ -333,7 +332,23 @@ box.appendChild(card);
 
 }
 
+function showSelectedCards(){
 
+let box=document.getElementById("myCards");
+
+box.innerHTML="";
+
+
+selectedCards.forEach(cardNumber=>{
+
+
+createMyCard(cardNumber);
+
+
+});
+
+
+}
 
 
 // የተጠራ ቁጥር ካርቴላ ላይ መጥቆር
