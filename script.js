@@ -175,17 +175,12 @@ cards.appendChild(btn);
 }
 
 }
-
-
-
-
 function selectCard(number,button){
 
 
 if(selectedCards.includes(number)){
 
-selectedCards=
-selectedCards.filter(c=>c!==number);
+selectedCards = selectedCards.filter(c=>c!==number);
 
 button.classList.remove("selectedCard");
 
@@ -193,12 +188,44 @@ button.classList.remove("selectedCard");
 }else{
 
 
+if(balance < 10){
+
+alert("በቂ Balance የለም");
+
+return;
+
+}
+
+
 selectedCards.push(number);
+
+
+balance -= 10;
+
+
+document.getElementById("balance").innerHTML =
+balance + " ብር";
+
 
 button.classList.add("selectedCard");
 
 
 }
+
+
+document.getElementById("selectedCount").innerHTML =
+selectedCards.length;
+
+
+document.getElementById("cardPrice").innerHTML =
+selectedCards.length * 10;
+
+
+}
+
+
+
+
 
 
 
