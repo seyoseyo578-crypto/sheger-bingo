@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sheger Bingo</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Header Section -->
+    <header>
+        <img src="logo.png" alt="Logo" class="logo">
+        <div class="header-right">
+            <span id="prize-pool-text">ሽልማት: $0</span>
+            <button onclick="openMenu()">☰</button>
+        </div>
+    </header>
+
+    <!-- Menu Panel (Hidden by default) -->
+    <div id="menu-panel" style="display:none;">
+        <h3>ቅንብሮች (Settings)</h3>
+        <button onclick="toggleDarkMode()">Dark/Light Mode</button>
+        <hr>
+        <h4>Deposit</h4>
+        <p>ቴሌብር: SUED +251964796846</p>
+        <p>ንግድ ባንክ: 1000615139126</p>
+        <button onclick="alert('Proof ያስገቡ')">Deposit Proof</button>
+        <hr>
+        <h4>Withdraw</h4>
+        <button onclick="sendWithdraw(prompt('መጠኑን ያስገቡ:'))">Withdraw (Min 200)</button>
+    </div>
+
+    <!-- Game Section -->
+    <div class="stats">
+        <span>ተጫዋቾች: <b id="p-count">0</b></span>
+        <button id="add-card-btn" onclick="addCard()">+ ካርቴላ ያክሉ</button>
+    </div>
+
+    <div id="current-num">የወጣ ቁጥር: --</div>
+    <div id="bingo-card-container"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
 
