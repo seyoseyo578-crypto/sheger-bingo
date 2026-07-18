@@ -369,3 +369,74 @@ document.getElementById("winPrize").innerHTML =
 }
 
 }
+let balance = 0;
+
+
+
+// Deposit
+
+function sendDeposit(){
+
+let amount =
+document.getElementById("depositAmount").value;
+
+
+if(amount<=0){
+
+alert("የብር መጠን አስገባ");
+
+return;
+
+}
+
+
+balance += Number(amount);
+
+
+document.getElementById("balance").innerHTML =
+balance + " ብር";
+
+
+alert("Deposit ተጨምሯል ✅");
+
+}
+
+
+
+
+// Withdraw
+
+function sendWithdraw(){
+
+let amount =
+document.getElementById("withdrawAmount").value;
+
+
+if(amount < 200){
+
+alert("Minimum Withdraw 200 ብር ነው");
+
+return;
+
+}
+
+
+if(amount > balance){
+
+alert("በቂ Balance የለም");
+
+return;
+
+}
+
+
+balance -= Number(amount);
+
+
+document.getElementById("balance").innerHTML =
+balance + " ብር";
+
+
+alert("Withdraw ጥያቄ ተልኳል ✅");
+
+}
