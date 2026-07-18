@@ -399,3 +399,45 @@ function calculatePrize(){
  `;
   
 }
+  function showCards(){
+
+ let box=document.getElementById("cards");
+
+ box.classList.toggle("hidden");
+
+ let list=document.getElementById("list");
+
+ list.innerHTML="";
+
+
+ for(let i=1;i<=250;i++){
+
+  let btn=document.createElement("button");
+
+  if(i===48 || i===68){
+
+    btn.innerHTML="⭐ Admin ካርቴላ "+i;
+
+  }else{
+
+    btn.innerHTML="ካርቴላ "+i;
+
+  }
+
+
+  btn.onclick=function(){
+
+    createCard(i);
+
+  };
+
+
+  list.appendChild(btn);
+
+ }
+function createCard(){function createCard(cardNumber=1){let card=document.getElementById("card");
+}let title=document.getElementById("cardTitle");
+
+if(title){
+ title.innerHTML="ካርቴላ "+cardNumber;
+}<h3 id="cardTitle">ካርቴላ 1</h3>
