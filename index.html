@@ -124,6 +124,10 @@ flex-wrap:wrap;
 justify-content:center;
 gap:8px;
 margin:15px;
+}.marked{
+background:#00c853 !important;
+color:white;
+border:3px solid #008000;
 }
 
 .circle{
@@ -412,7 +416,17 @@ calledNumbers.push(num);
 
 
 document.getElementById("activeNumber").innerHTML=num;
+let cells=document.querySelectorAll(".cell");
 
+cells.forEach(function(cell){
+
+if(cell.innerHTML==num){
+
+cell.classList.add("marked");
+
+}
+
+});
 
 let circle=document.createElement("div");
 
