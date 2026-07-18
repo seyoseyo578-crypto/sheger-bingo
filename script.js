@@ -1,49 +1,488 @@
-// --- የቢንጎ ቁጥሮችን በትክክለኛው ክልል ማመንጨት ---
-function getColumnNumbers(min, max, count) {
-    let nums = [];
-    while(nums.length < count) {
-        let n = Math.floor(Math.random() * (max - min + 1)) + min;
-        if(!nums.includes(n)) nums.push(n);
-    }
-    return nums;
+// Sheger Bingo Script
+
+
+let calledNumbers = [];
+
+let currentCard = 1;
+
+
+
+// MENU
+
+function openMenu(){
+
+    document
+    .getElementById("menu")
+    .classList
+    .toggle("hidden");
+
 }
 
-function createCard(id) {
-    // እያንዳንዱ አምድ የራሱ ክልል አለው
-    let b = getColumnNumbers(1, 15, 5);
-    let i = getColumnNumbers(16, 30, 5);
-    let n = getColumnNumbers(31, 45, 4); // መሃል ነፃ ስለሆነ 4 ቁጥር
-    let g = getColumnNumbers(46, 60, 5);
-    let o = getColumnNumbers(61, 75, 5);
-    
-    // ቁጥሮቹን አንድ ላይ ማቀናጀት
-    let allNumbers = [...b, ...i, ...n.slice(0,2), 0, ...n.slice(2), ...g, ...o]; 
-    // 0 ማለት 'FREE' ቦታ ነው
-    
-    return { id: id, numbers: allNumbers, marked: Array(25).fill(false) };
+
+
+function darkMode(){
+
+    document.body.classList.toggle("dark");
+
 }
 
-function showCards() {
-    const container = document.getElementById('bingo-card-container');
-    container.innerHTML = '';
-    registeredCards.forEach(card => {
-        let cardDiv = document.createElement('div');
-        cardDiv.className = 'card-view';
-        cardDiv.innerHTML = `<h4>ካርቴላ #${card.id}</h4>`;
-        
-        let grid = document.createElement('div');
-        grid.className = 'bingo-grid';
-        
-        card.numbers.forEach((num, index) => {
-            let cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.innerText = num === 0 ? 'FREE' : num;
-            if(num === 0) cell.classList.add('free');
-            if(card.marked[index]) cell.classList.add('marked');
-            grid.appendChild(cell);
-        });
-        
-        cardDiv.appendChild(grid);
-        container.appendChild(cardDiv);
+
+
+
+
+// CREATE BINGO CARD
+
+function createCard(cardNumber=1){
+
+    currentCard = cardNumber;
+
+    document.getElementById("cardTitle").innerHTML =
+    "ካርቴላ " + cardNumber;
+
+
+    let card = document.getElementById("card");
+
+    card.innerHTML="";
+
+
+    let letters=["B","I","N","G","O"];
+
+
+    letters.forEach(letter=>{
+
+        let cell=document.createElement("div");
+
+        cell.className="cell head";
+
+        cell.innerHTML=letter;
+
+        card.appendChild(cell);
+
     });
+
+
+
+    let numbers=[];
+
+
+    for(let i=1;i<=75;i++){
+
+        numbers.push(i);
+
+    }
+
+
+
+    for(let i=0;i<25;i++){
+
+
+        let cell=document.createElement("div");
+
+        cell.className="cell";
+
+
+        if(i===12){
+
+            cell.innerHTML="FREE";
+
+            cell.classList.add("free");
+
+        }
+
+        else{
+
+
+            let index=Math.floor(
+                Math.random()*numbers.length
+            );
+
+
+            let number=numbers[index];
+
+
+            numbers.splice(index,1);
+
+
+            cell.innerHTML=number;
+
+
+            cell.dataset.number=number;
+
+
+        }
+
+
+        card.appendChild(cell);
+
+
+    }
+
+
 }
+
+
+
+
+
+// SHOW 250 CARDS
+
+
+function showCards(){
+
+
+    let box=document
+    .getElementById("cards");
+
+
+    box.classList.toggle("hidden");
+
+
+
+    let list=document
+    .getElementById("list");
+
+
+    list.innerHTML="";
+
+
+
+    for(let i=1;i<=250;i++){
+
+
+        let btn=document.createElement("button");
+
+
+        if(i===48 || i===68){
+
+            btn.innerHTML=
+            "⭐ Admin ካርቴላ "+i;
+
+        }
+
+        else{
+
+            btn.innerHTML=
+            "ካርቴላ "+i;
+
+        }
+
+
+
+        btn.onclick=function(){
+
+            createCard(i);
+
+        };
+
+
+        list.appendChild(btn);
+
+
+    }
+
+}
+
+
+
+
+
+// CALL NUMBER
+
+
+function callNumber(){
+
+
+    if(calledNumbers.length>=75){
+
+        alert("ሁሉም ቁጥሮች ተጠርተዋል");
+
+        return;
+
+    }
+
+
+
+    let num;
+
+
+    do{
+
+        num=Math.floor(Math.random()*75)+1;
+
+
+    }
+
+    while(
+        calledNumbers.includes(num)
+    );
+
+
+
+    calledNumbers.push(num);
+
+
+
+    document
+    .getElementById("activeNumber")
+    .innerHTML=num;
+
+
+
+
+    let circle=document.createElement("div");
+
+
+    circle.className="circle";
+
+
+    circle.innerHTML=num;
+
+
+
+    document
+    .getElementById("called")
+    .appendChild(circle);
+
+
+
+    markNumber(num);
+
+
+}
+
+
+
+
+
+// AUTO MARK
+
+
+function markNumber(num){
+
+
+    let cells=
+    document.querySelectorAll(".cell");
+
+
+
+    cells.forEach(cell=>{
+
+
+        if(cell.dataset.number==num){
+
+
+            cell.classList.add("marked");
+
+
+        }
+
+
+    });
+
+
+
+    checkBingo();
+
+
+}
+
+
+
+
+
+// CHECK BINGO
+
+
+function checkBingo(){
+
+
+    let cells=
+    document.querySelectorAll(
+        "#card .cell:not(.head)"
+    );
+
+
+    let count=0;
+
+
+
+    cells.forEach(cell=>{
+
+
+        if(
+        cell.classList.contains("marked")
+        ||
+        cell.classList.contains("free")
+        ){
+
+            count++;
+
+        }
+
+
+    });
+
+
+
+    if(count===25){
+
+
+        alert(
+        "🎉 BINGO! አሸናፊ ነህ!"
+        );
+
+
+    }
+
+
+}
+
+
+
+
+
+
+// PRIZE CALCULATOR
+
+
+function calculatePrize(){
+
+
+    let total=
+    Number(
+    document.getElementById("players").value
+    );
+
+
+
+    if(total<=0){
+
+        return;
+
+    }
+
+
+
+    let owner =
+    total * 0.25;
+
+
+
+    let winner =
+    total * 0.75;
+
+
+
+    document
+    .getElementById("result")
+    .innerHTML=
+
+    "የአንተ 25%: "
+    +owner+
+    " ብር <br>"+
+    "የአሸናፊ 75%: "
+    +winner+
+    " ብር";
+
+
+}
+
+
+
+
+
+
+
+// DEPOSIT
+
+
+function sendDeposit(){
+
+
+    let amount=
+    document.getElementById("depositAmount").value;
+
+
+    let proof=
+    document.getElementById("depositProof").value;
+
+
+
+    if(!amount || !proof){
+
+        alert("ሁሉንም ሙላ");
+
+        return;
+
+    }
+
+
+
+    alert(
+    "Deposit ተልኳል ✅"
+    );
+
+
+}
+
+
+
+
+
+
+// WITHDRAW
+
+
+function sendWithdraw(){
+
+
+    let amount=
+    Number(
+    document.getElementById("withdrawAmount").value
+    );
+
+
+    let account=
+    document.getElementById("withdrawAccount").value;
+
+
+
+    if(amount < 200){
+
+        alert(
+        "ከ200 ብር በታች Withdraw አይቻልም"
+        );
+
+        return;
+
+    }
+
+
+
+    if(!account){
+
+        alert(
+        "የክፍያ መረጃ ሙላ"
+        );
+
+        return;
+
+    }
+
+
+
+    alert(
+    "Withdraw ጥያቄ ተልኳል ✅"
+    );
+
+
+}
+
+
+
+
+
+
+// START
+
+createCard();
