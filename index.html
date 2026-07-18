@@ -308,3 +308,94 @@ createCard();
 
 </body>
 </html>
+<div class="panel">
+
+<h3>🎱 Bingo Caller</h3>
+
+<h2 id="activeNumber">-</h2>
+
+<button onclick="callNumber()">
+ቁጥር ጥራ
+</button>
+
+</div>
+
+
+<div class="panel">
+
+<h3>🏆 ሽልማት Calculator</h3>
+
+<input id="players" 
+type="number" 
+placeholder="የተመዘገቡ ካርቴላዎች">
+
+<button onclick="calculatePrize()">
+አስላ
+</button>
+
+<p id="result"></p>
+
+</div>let calledNumbers=[];
+
+
+function callNumber(){
+
+ if(calledNumbers.length>=75){
+   alert("ሁሉም ቁጥሮች ተጠርተዋል");
+   return;
+ }
+
+
+ let num;
+
+
+ do{
+   num=Math.floor(Math.random()*75)+1;
+ }
+ while(calledNumbers.includes(num));
+
+
+ calledNumbers.push(num);
+
+
+ document.getElementById("activeNumber").innerHTML=num;
+
+
+ let box=document.getElementById("called");
+
+
+ let circle=document.createElement("div");
+
+ circle.className="circle";
+
+ circle.innerHTML=num;
+
+
+ box.appendChild(circle);
+
+}
+
+
+
+function calculatePrize(){
+
+ let total=document.getElementById("players").value;
+
+
+ if(total<=0){
+  return;
+ }
+
+
+ let owner=total*0.25;
+
+ let winner=total*0.75;
+
+
+ document.getElementById("result").innerHTML=
+ `
+ የአንተ 25%: ${owner} ብር <br>
+ የአሸናፊ 75%: ${winner} ብር
+ `;
+  
+}
