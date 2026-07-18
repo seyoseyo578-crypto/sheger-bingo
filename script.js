@@ -212,3 +212,122 @@ document.getElementById("cardPrice")
 
 
 }
+function createMyCard(cardNumber){
+
+
+let box=document.getElementById("myCards");
+
+
+let card=document.createElement("div");
+
+card.className="bingoCard";
+
+
+let letters=["B","I","N","G","O"];
+
+
+letters.forEach(l=>{
+
+let cell=document.createElement("div");
+
+cell.className="bingoCell bingoHead";
+
+cell.innerHTML=l;
+
+card.appendChild(cell);
+
+});
+
+
+
+let ranges=[
+
+[1,15],
+[16,30],
+[31,45],
+[46,60],
+[61,75]
+
+];
+
+
+
+for(let row=0;row<5;row++){
+
+
+for(let col=0;col<5;col++){
+
+
+let cell=document.createElement("div");
+
+cell.className="bingoCell";
+
+
+
+if(row==2 && col==2){
+
+cell.innerHTML="FREE";
+
+cell.classList.add("free");
+
+
+}else{
+
+
+let min=ranges[col][0];
+
+let max=ranges[col][1];
+
+
+let num=Math.floor(
+Math.random()*(max-min+1)
+)+min;
+
+
+cell.innerHTML=num;
+
+cell.dataset.number=num;
+
+
+}
+
+
+card.appendChild(cell);
+
+
+}
+
+}
+
+
+
+box.appendChild(card);
+
+
+}
+
+
+
+
+// የተጠራ ቁጥር ካርቴላ ላይ መጥቆር
+
+function markCard(number){
+
+
+let cells=document.querySelectorAll(".bingoCell");
+
+
+cells.forEach(cell=>{
+
+
+if(cell.dataset.number==number){
+
+cell.classList.add("marked");
+
+}
+
+
+});
+
+
+}
