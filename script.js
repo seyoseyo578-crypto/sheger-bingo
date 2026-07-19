@@ -4,16 +4,19 @@
 
 let balance = 0;
 let calledNumbers = [];
-let selectedCards = [];
+let selectedCards = [];       // array of card numbers the player has selected
+let unpaidCards = [];         // card numbers selected without enough balance (cannot win)
 let isCalling = false;
 let callerTimer = null;
+let soundOn = true;
 
 const CARD_PRICE = 10;
 const MIN_WITHDRAW = 200;
 const CALL_INTERVAL_MS = 5000;
+const FREE_CARDS = [46, 68]; // always free to play, always eligible to win
 
 
-/* ---------- Bingo Machine Table (B/I/N/G/O big board) ---------- */
+/* ---------- Bingo Machine Table (horizontal: one row per letter) ---------- */
 
 const machineColumns = {
     B: range(1, 15),
@@ -31,16 +34,21 @@ function range(min, max) {
 
 function buildMachineTable() {
     let table = document.getElementById("bingoTable");
+    table.innerHTML = "";
 
-    for (let i = 0; i < 15; i++) {
+    for (let letter in machineColumns) {
         let row = document.createElement("tr");
 
-        for (let col in machineColumns) {
+        let head = document.createElement("th");
+        head.innerHTML = letter;
+        row.appendChild(head);
+
+        machineColumns[letter].forEach(num => {
             let cell = document.createElement("td");
-            cell.innerHTML = machineColumns[col][i];
-            cell.dataset.number = machineColumns[col][i];
+            cell.innerHTML = num;
+            cell.dataset.number = num;
             row.appendChild(cell);
-        }
+        });
 
         table.appendChild(row);
     }
@@ -57,6 +65,23 @@ function numberLetter(number) {
     if (number <= 45) return "N";
     if (number <= 60) return "G";
     return "O";
+}
+
+function beep() {
+    if (!soundOn) return;
+    try {
+        let ctx = new (window.AudioContext || window.webkitAudioContext)();
+        let osc = ctx.createOscillator();
+        let gain = ctx.createGain();
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+    } catch (e) {
+        // audio not available, ignore
+    }
 }
 
 function callNumber() {
@@ -90,21 +115,20 @@ function callNumber() {
     circle.innerHTML = letter + "-" + number;
     document.getElementById("calledNumbers").appendChild(circle);
 
-    // Mark it on the player's cards + check for a win
+    beep();
+
+    // Mark it on the player's cards (if any) + check for a win
     markCard(number);
 }
 
+// The caller machine works on its own — players do not need to be
+// registered for it to start calling numbers.
 function startCaller() {
     let btn = event.target;
 
     if (isCalling) {
         stopCaller();
         btn.innerHTML = "▶ Start";
-        return;
-    }
-
-    if (selectedCards.length === 0) {
-        alert("እባክዎ መጀመሪያ ካርቴላ ይምረጡ");
         return;
     }
 
@@ -117,6 +141,8 @@ function startCaller() {
 
 function stopCaller() {
     isCalling = false;
+    let btn = document.getElementById("callerStartBtn");
+    if (btn) btn.innerHTML = "▶ Start";
     if (callerTimer) {
         clearInterval(callerTimer);
         callerTimer = null;
@@ -138,6 +164,10 @@ function openCards() {
         btn.innerHTML = "" + i;
         btn.className = "cardButton";
 
+        if (FREE_CARDS.includes(i)) {
+            btn.classList.add("freeCardBtn");
+        }
+
         if (selectedCards.includes(i)) {
             btn.classList.add("selectedCard");
         }
@@ -151,19 +181,30 @@ function openCards() {
 }
 
 function selectCard(number, button) {
+    let isFree = FREE_CARDS.includes(number);
+
     if (selectedCards.includes(number)) {
-        // Deselect + refund
+        // Deselect. Refund only if it was actually paid for.
         selectedCards = selectedCards.filter(c => c !== number);
-        balance += CARD_PRICE;
+
+        if (!isFree && !unpaidCards.includes(number)) {
+            balance += CARD_PRICE;
+        }
+        unpaidCards = unpaidCards.filter(c => c !== number);
+
         button.classList.remove("selectedCard");
     } else {
-        if (balance < CARD_PRICE) {
-            alert("በቂ Balance የለም");
-            return;
+        // Select. Free cards never cost anything. Otherwise, take the
+        // card even without enough balance — it just won't be able to win.
+        if (isFree) {
+            // no charge
+        } else if (balance >= CARD_PRICE) {
+            balance -= CARD_PRICE;
+        } else {
+            unpaidCards.push(number);
         }
 
         selectedCards.push(number);
-        balance -= CARD_PRICE;
         button.classList.add("selectedCard");
     }
 
@@ -172,6 +213,20 @@ function selectCard(number, button) {
     document.getElementById("cardPrice").innerHTML = selectedCards.length * CARD_PRICE;
 
     showSelectedCards();
+}
+
+function registerCards() {
+    if (selectedCards.length === 0) {
+        alert("እባክዎ ቢያንስ አንድ ካርቴላ ይምረጡ");
+        return;
+    }
+
+    showSelectedCards();
+
+    let box = document.getElementById("cardList");
+    box.classList.add("hidden");
+
+    alert("ካርቴላዎ ተመዝግቧል ✅");
 }
 
 function showSelectedCards() {
@@ -196,17 +251,22 @@ function shuffle(arr) {
 
 function createMyCard(cardNumber) {
     let box = document.getElementById("myCards");
+    let isFree = FREE_CARDS.includes(cardNumber);
+    let isUnpaid = unpaidCards.includes(cardNumber);
 
     let wrapper = document.createElement("div");
     wrapper.className = "bingoCardWrapper";
 
     let label = document.createElement("h3");
-    label.innerHTML = "ካርቴላ #" + cardNumber;
+    label.innerHTML = "ካርቴላ #" + cardNumber
+        + (isFree ? " 🆓" : "")
+        + (isUnpaid ? " ⚠️ ያልተከፈለ" : "");
     wrapper.appendChild(label);
 
     let card = document.createElement("div");
     card.className = "bingoCard";
     card.dataset.cardId = cardNumber;
+    if (isUnpaid) card.dataset.unpaid = "true";
 
     let letters = ["B", "I", "N", "G", "O"];
     letters.forEach(l => {
@@ -267,6 +327,9 @@ function checkBingo() {
     let winner = null;
 
     cards.forEach(card => {
+        // Unpaid cards can be played and marked, but can never win.
+        if (card.dataset.unpaid === "true") return;
+
         let cells = card.querySelectorAll(".bingoCell:not(.bingoHead)");
         let allMarked = true;
 
@@ -291,7 +354,11 @@ function checkBingo() {
 }
 
 
-/* ---------- Deposit / Withdraw ---------- */
+/* ---------- Menu (Deposit / Withdraw live inside it) ---------- */
+
+function toggleMenu() {
+    document.getElementById("menuPanel").classList.toggle("hidden");
+}
 
 function sendDeposit() {
     let amountInput = document.getElementById("depositAmount");
@@ -328,4 +395,28 @@ function sendWithdraw() {
     amountInput.value = "";
 
     alert("Withdraw ጥያቄ ተልኳል ✅");
+}
+
+
+/* ---------- Settings (theme + sound) — only closes via the ✕ button ---------- */
+
+function openSettings() {
+    document.getElementById("settingsModal").classList.remove("hidden");
+}
+
+function closeSettings() {
+    document.getElementById("settingsModal").classList.add("hidden");
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("dark");
+    let isDark = document.body.classList.contains("dark");
+    document.getElementById("themeToggleBtn").innerHTML =
+        isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+}
+
+function toggleSound() {
+    soundOn = !soundOn;
+    document.getElementById("soundToggleBtn").innerHTML =
+        soundOn ? "🔊 ድምፅ በርቷል" : "🔇 ድምፅ ጠፍቷል";
 }
