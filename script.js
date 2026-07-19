@@ -4,8 +4,8 @@
 
 let balance = 0;
 let calledNumbers = [];
-let selectedCards = [];       // array of card numbers the player has selected
-let unpaidCards = [];         // card numbers selected without enough balance (cannot win)
+let selectedCards = [];       // card numbers the player has added to their list
+let registeredCards = [];     // card numbers that are paid + eligible to win
 let isCalling = false;
 let callerTimer = null;
 let soundOn = true;
@@ -13,7 +13,32 @@ let soundOn = true;
 const CARD_PRICE = 10;
 const MIN_WITHDRAW = 200;
 const CALL_INTERVAL_MS = 5000;
-const FREE_CARDS = [46, 68]; // always free to play, always eligible to win
+const FREE_CARDS = [46, 68]; // always free, always registered automatically
+
+
+/* ---------- Telegram Mini App integration ---------- */
+/* NOTE: the bot's API token must never appear in this front-end code.
+   Anyone can view page source and steal it. Sending game results back
+   to @sheger_bingo_game_bot uses Telegram's WebApp bridge instead,
+   which needs no token here at all — the token only belongs on a
+   server you control that talks to the Telegram Bot API. */
+
+let tg = window.Telegram ? window.Telegram.WebApp : null;
+
+if (tg) {
+    tg.ready();
+    tg.expand();
+}
+
+function notifyTelegram(payload) {
+    if (tg && typeof tg.sendData === "function") {
+        try {
+            tg.sendData(JSON.stringify(payload));
+        } catch (e) {
+            // not running inside a Telegram WebApp flow that supports sendData
+        }
+    }
+}
 
 
 /* ---------- Bingo Machine Table (horizontal: one row per letter) ---------- */
@@ -184,49 +209,89 @@ function selectCard(number, button) {
     let isFree = FREE_CARDS.includes(number);
 
     if (selectedCards.includes(number)) {
-        // Deselect. Refund only if it was actually paid for.
+        // Deselect. Refund only if it had actually been paid/registered.
         selectedCards = selectedCards.filter(c => c !== number);
 
-        if (!isFree && !unpaidCards.includes(number)) {
+        if (!isFree && registeredCards.includes(number)) {
             balance += CARD_PRICE;
         }
-        unpaidCards = unpaidCards.filter(c => c !== number);
+        registeredCards = registeredCards.filter(c => c !== number);
 
         button.classList.remove("selectedCard");
     } else {
-        // Select. Free cards never cost anything. Otherwise, take the
-        // card even without enough balance — it just won't be able to win.
+        // Just select it — no charge happens here. Free cards register
+        // themselves instantly; paid cards need the "አመዝግብ" button
+        // on the card itself before they can win.
+        selectedCards.push(number);
+
         if (isFree) {
-            // no charge
-        } else if (balance >= CARD_PRICE) {
-            balance -= CARD_PRICE;
-        } else {
-            unpaidCards.push(number);
+            registeredCards.push(number);
         }
 
-        selectedCards.push(number);
         button.classList.add("selectedCard");
     }
 
     document.getElementById("balance").innerHTML = balance + " ብር";
     document.getElementById("selectedCount").innerHTML = selectedCards.length;
-    document.getElementById("cardPrice").innerHTML = selectedCards.length * CARD_PRICE;
+
+    let unpaidTotal = selectedCards.filter(c => !FREE_CARDS.includes(c)).length * CARD_PRICE;
+    document.getElementById("cardPrice").innerHTML = unpaidTotal;
 
     showSelectedCards();
 }
 
+// Register (pay for) a single card from its own card header button.
+function registerSingleCard(cardNumber) {
+    if (FREE_CARDS.includes(cardNumber) || registeredCards.includes(cardNumber)) {
+        return;
+    }
+
+    if (balance < CARD_PRICE) {
+        alert("በቂ ገንዘብ የለም — Deposit ያድርጉ");
+        return;
+    }
+
+    balance -= CARD_PRICE;
+    registeredCards.push(cardNumber);
+
+    document.getElementById("balance").innerHTML = balance + " ብር";
+    showSelectedCards();
+}
+
+// Bulk "🎫 ካርቴላ አመዝግብ" button: tries to register every selected,
+// not-yet-registered card at once (as far as balance allows).
 function registerCards() {
     if (selectedCards.length === 0) {
         alert("እባክዎ ቢያንስ አንድ ካርቴላ ይምረጡ");
         return;
     }
 
+    let registeredNow = 0;
+    let skipped = 0;
+
+    selectedCards.forEach(cardNumber => {
+        if (FREE_CARDS.includes(cardNumber) || registeredCards.includes(cardNumber)) return;
+
+        if (balance >= CARD_PRICE) {
+            balance -= CARD_PRICE;
+            registeredCards.push(cardNumber);
+            registeredNow++;
+        } else {
+            skipped++;
+        }
+    });
+
+    document.getElementById("balance").innerHTML = balance + " ብር";
     showSelectedCards();
 
     let box = document.getElementById("cardList");
     box.classList.add("hidden");
 
-    alert("ካርቴላዎ ተመዝግቧል ✅");
+    if (skipped > 0) {
+        alert(registeredNow + " ካርቴላ ተመዝግቧል ✅ — " + skipped + " ካርቴላ በቂ ገንዘብ ስላልነበረው ያልተመዘገበ ነው");
+    } else {
+        alert("ካርቴላዎ ተመዝግቧል ✅");
+    }
 }
 
 function showSelectedCards() {
@@ -252,21 +317,39 @@ function shuffle(arr) {
 function createMyCard(cardNumber) {
     let box = document.getElementById("myCards");
     let isFree = FREE_CARDS.includes(cardNumber);
-    let isUnpaid = unpaidCards.includes(cardNumber);
+    let isRegistered = isFree || registeredCards.includes(cardNumber);
 
     let wrapper = document.createElement("div");
     wrapper.className = "bingoCardWrapper";
 
+    let headerRow = document.createElement("div");
+    headerRow.className = "cardHeaderRow";
+
     let label = document.createElement("h3");
-    label.innerHTML = "ካርቴላ #" + cardNumber
-        + (isFree ? " 🆓" : "")
-        + (isUnpaid ? " ⚠️ ያልተከፈለ" : "");
-    wrapper.appendChild(label);
+    label.innerHTML = "ካርቴላ #" + cardNumber + (isFree ? " 🆓" : isRegistered ? " ✅" : "");
+    headerRow.appendChild(label);
+
+    if (!isRegistered) {
+        let tag = document.createElement("span");
+        tag.className = "unregisteredTag";
+        tag.innerHTML = "ያልተመዘገበ";
+        headerRow.appendChild(tag);
+
+        let regBtn = document.createElement("button");
+        regBtn.className = "registerBtn";
+        regBtn.innerHTML = "አመዝግብ";
+        regBtn.onclick = function () {
+            registerSingleCard(cardNumber);
+        };
+        headerRow.appendChild(regBtn);
+    }
+
+    wrapper.appendChild(headerRow);
 
     let card = document.createElement("div");
     card.className = "bingoCard";
     card.dataset.cardId = cardNumber;
-    if (isUnpaid) card.dataset.unpaid = "true";
+    card.dataset.registered = isRegistered ? "true" : "false";
 
     let letters = ["B", "I", "N", "G", "O"];
     letters.forEach(l => {
@@ -327,8 +410,8 @@ function checkBingo() {
     let winner = null;
 
     cards.forEach(card => {
-        // Unpaid cards can be played and marked, but can never win.
-        if (card.dataset.unpaid === "true") return;
+        // Unregistered cards can be played and marked, but can never win.
+        if (card.dataset.registered !== "true") return;
 
         let cells = card.querySelectorAll(".bingoCell:not(.bingoHead)");
         let allMarked = true;
@@ -350,6 +433,8 @@ function checkBingo() {
             "🎉 BINGO! ካርቴላ #" + winner + " አሸናፊ ነው";
         document.getElementById("winPrize").innerHTML = 100;
         document.getElementById("prize").innerHTML = "100 ብር";
+
+        notifyTelegram({ event: "bingo_win", card: winner, prize: 100 });
     }
 }
 
