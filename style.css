@@ -9,6 +9,110 @@
 body{
     background:#f3f3f3;
     color:#222;
+    transition:background .2s,color .2s;
+    position:relative;
+}
+
+
+body::before{
+    content:"";
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:url('logo.png') center center no-repeat;
+    background-size:min(480px,75%) auto;
+    opacity:0.07;
+    z-index:-1;
+    pointer-events:none;
+}
+
+
+/* ---------- Dark Mode ---------- */
+
+body.dark{
+    background:#121212;
+    color:#eee;
+}
+
+body.dark header,
+body.dark .info div,
+body.dark .panel,
+body.dark .modalBox{
+    background:#1e1e1e;
+    color:#eee;
+}
+
+body.dark #bingoTable td{
+    border-color:#444;
+    color:#eee;
+}
+
+body.dark .bingoCell{
+    background:#1e1e1e;
+    color:#eee;
+    border-color:#444;
+}
+
+body.dark input{
+    background:#2a2a2a;
+    color:#eee;
+    border-color:#555;
+}
+
+
+/* ---------- Menu Panel (Deposit / Withdraw) ---------- */
+
+#menuPanel.hidden{
+    display:none;
+}
+
+
+/* ---------- Settings Modal ---------- */
+
+.modalOverlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    z-index:1000;
+}
+
+.modalOverlay.hidden{
+    display:none;
+}
+
+.modalBox{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    width:85%;
+    max-width:320px;
+    text-align:center;
+    position:relative;
+}
+
+.modalBox button{
+    display:block;
+    width:100%;
+    margin:10px 0;
+}
+
+.closeBtn{
+    position:absolute;
+    top:10px;
+    right:10px;
+    width:32px;
+    height:32px;
+    padding:0;
+    border-radius:50%;
+    background:#e53935;
 }
 
 
@@ -23,12 +127,12 @@ body{
 
 
 .welcome img.logo{
-    width:70px;
-    height:70px;
-    border-radius:50%;
+    width:130px;
+    height:auto;
+    border-radius:10px;
     margin-bottom:10px;
     background:white;
-    padding:5px;
+    padding:4px;
 }
 
 
@@ -113,14 +217,22 @@ button:disabled{
 
 
 
-/* Bingo Machine Table */
+/* Bingo Machine Table (horizontal: one row per letter) */
+
+.table-scroll{
+
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+
+}
+
 
 #bingoTable{
 
-    width:95%;
-    margin:auto;
     border-collapse:collapse;
-    font-size:22px;
+    font-size:18px;
+    margin:auto;
 
 }
 
@@ -130,7 +242,12 @@ button:disabled{
 
     background:#008cff;
     color:white;
-    height:60px;
+    height:45px;
+    width:45px;
+    min-width:45px;
+    position:sticky;
+    left:0;
+    z-index:1;
 
 }
 
@@ -138,8 +255,9 @@ button:disabled{
 #bingoTable td{
 
     border:2px solid #777;
-    height:55px;
-    width:80px;
+    height:45px;
+    width:45px;
+    min-width:45px;
     text-align:center;
     font-weight:bold;
 
@@ -254,6 +372,13 @@ background:#00c853 !important;
 }
 
 
+.freeCardBtn{
+
+border:2px solid #ffcc00;
+
+}
+
+
 .hidden{
 
 display:none;
@@ -264,6 +389,13 @@ display:none;
 margin:15px 0;
 padding-bottom:10px;
 border-bottom:1px solid #ddd;
+
+}
+
+
+.bingoCard[data-unpaid="true"]{
+
+opacity:0.6;
 
 }
 
