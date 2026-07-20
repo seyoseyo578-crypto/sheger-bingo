@@ -16,32 +16,130 @@
 <body>
 
 
-<div class="welcome">
+<!-- Slim top bar (replaces the old big welcome banner) -->
+<div class="topbar">
+<img src="logo.png" alt="Sheger Bingo" class="topbarLogo">
+<h2>Sheger Bingo</h2>
+<div class="topbarBalance">Balance: <b id="topbarBalanceValue">0 ብር</b></div>
+</div>
 
-<img src="logo.png" alt="Sheger Bingo Logo" class="logo">
 
-<h1>Welcome to Sheger Bingo</h1>
-<h2>እንኳን ደህና መጡ ወደ ሸገር ቢንጎ</h2>
+
+<!-- ========== TAB: 🎮 ጨዋታ (Game) ========== -->
+<div id="tab-game" class="tabContent">
+
+    <div class="info">
+
+    <div>
+    የካርቴላ ዋጋ:
+    <b>10 ብር</b>
+    </div>
+
+    <div>
+    Balance:
+    <b id="balance">0 ብር</b>
+    </div>
+
+    <div>
+    ሽልማት:
+    <b id="prize">0 ብር</b>
+    </div>
+
+    </div>
+
+
+    <div class="panel">
+
+    <h2>🎱 Bingo Machine</h2>
+
+    <div class="table-scroll">
+
+    <table id="bingoTable"></table>
+
+    </div>
+
+    </div>
+
+
+    <div class="panel">
+
+    <h2>🎱 Bingo Caller</h2>
+
+    <h1 id="activeNumber">-</h1>
+
+    <button id="callerStartBtn" onclick="startCaller()">
+    ▶ Start
+    </button>
+
+    <h3 style="margin-top:15px;">የተጠሩ ቁጥሮች</h3>
+
+    <div id="calledNumbers"></div>
+
+    </div>
+
+
+    <div class="panel">
+
+    <h2>🎫 ካርቴላ ምረጥ</h2>
+
+    <button onclick="openCards()">
+    + ካርቴላ ይጨምሩ
+    </button>
+
+    <h3>
+    የተመረጡ ካርቴላዎች:
+    <span id="selectedCount">0</span>
+    </h3>
+
+    <h3>
+    ዋጋ:
+    <span id="cardPrice">0</span> ብር
+    </h3>
+
+    </div>
+
+
+    <div class="panel">
+
+    <h2>🎫 የእኔ ካርቴላ</h2>
+
+    <div id="myCards"></div>
+
+    </div>
+
+
+    <div class="panel">
+
+    <h2>🏆 የጨዋታ ውጤት</h2>
+    <h3 id="winMessage">
+    ጨዋታ በመቀጠል ላይ...
+    </h3>
+
+    <h3>
+    ሽልማት:
+    <span id="winPrize">0</span> ብር
+    </h3>
+
+    </div>
 
 </div>
 
 
 
-<header>
+<!-- ========== TAB: 🏆 ደረጃ (Leaderboard) ========== -->
+<div id="tab-leaderboard" class="tabContent hidden">
 
-<h2>🎱 Sheger Bingo</h2>
+    <div class="panel">
+    <h2>🏆 Leaderboard</h2>
+    <p>ብዙ-ተጫዋች የደረጃ ሰንጠረዥ ገና በዝግጅት ላይ ነው — ይሄ እውነተኛ ተጫዋቾችን ማወዳደር server ስለሚፈልግ በቅርቡ ይመጣል።</p>
+    </div>
 
-<div>
-<button onclick="toggleMenu()">☰ Menu</button>
-<button onclick="openSettings()">⚙ Settings</button>
 </div>
 
-</header>
 
 
-
-<!-- ☰ Menu: Deposit + Withdraw only show up when Menu is pressed -->
-<div id="menuPanel" class="hidden">
+<!-- ========== TAB: 💰 ዋሌት (Wallet: Deposit + Withdraw) ========== -->
+<div id="tab-wallet" class="tabContent hidden">
 
     <div class="panel">
 
@@ -109,13 +207,15 @@
 
 
 
-<!-- ⚙ Settings modal: only closes with the ✕ button -->
-<div id="settingsModal" class="modalOverlay hidden">
+<!-- ========== TAB: 👤 መገለጫ (Profile + Settings) ========== -->
+<div id="tab-profile" class="tabContent hidden">
 
-    <div class="modalBox">
+    <div class="panel">
+        <h2>👤 መገለጫ</h2>
+        <h3>Balance: <span id="profileBalance">0 ብር</span></h3>
+    </div>
 
-        <button class="closeBtn" onclick="closeSettings()">✕</button>
-
+    <div class="panel">
         <h2>⚙ ማስተካከያዎች</h2>
 
         <button id="themeToggleBtn" onclick="toggleTheme()">
@@ -125,85 +225,10 @@
         <button id="soundToggleBtn" onclick="toggleSound()">
         🔊 ድምፅ በርቷል
         </button>
-
     </div>
 
 </div>
 
-
-
-<div class="info">
-
-<div>
-የካርቴላ ዋጋ:
-<b>10 ብር</b>
-</div>
-
-<div>
-Balance:
-<b id="balance">0 ብር</b>
-</div>
-
-<div>
-ሽልማት:
-<b id="prize">0 ብር</b>
-</div>
-
-</div>
-
-
-
-<div class="panel">
-
-<h2>🎱 Bingo Machine</h2>
-
-<div class="table-scroll">
-
-<table id="bingoTable"></table>
-
-</div>
-
-</div>
-
-
-
-<div class="panel">
-
-<h2>🎱 Bingo Caller</h2>
-
-<h1 id="activeNumber">-</h1>
-
-<button id="callerStartBtn" onclick="startCaller()">
-▶ Start
-</button>
-
-<h3 style="margin-top:15px;">የተጠሩ ቁጥሮች</h3>
-
-<div id="calledNumbers"></div>
-
-</div>
-
-
-
-<div class="panel">
-
-<h2>🎫 ካርቴላ ምረጥ</h2>
-
-<button onclick="openCards()">
-+ ካርቴላ ይጨምሩ
-</button>
-
-<h3>
-የተመረጡ ካርቴላዎች:
-<span id="selectedCount">0</span>
-</h3>
-
-<h3>
-ዋጋ:
-<span id="cardPrice">0</span> ብር
-</h3>
-
-</div>
 
 
 <!-- Full-screen card picker: opened by "+ ካርቴላ ይጨምሩ" -->
@@ -232,28 +257,22 @@ Balance:
 </div>
 
 
-<div class="panel">
 
-<h2>🎫 የእኔ ካርቴላ</h2>
-
-<div id="myCards"></div>
-
-</div>
-
-
-<div class="panel">
-
-<h2>🏆 የጨዋታ ውጤት</h2>
-<h3 id="winMessage">
-ጨዋታ በመቀጠል ላይ...
-</h3>
-
-<h3>
-ሽልማት:
-<span id="winPrize">0</span> ብር
-</h3>
-
-</div>
+<!-- ========== Bottom Navigation ========== -->
+<nav class="bottomNav">
+    <button class="navBtn active" id="navBtn-game" onclick="showTab('game')">
+        <span class="navIcon">🎮</span><span>ጨዋታ</span>
+    </button>
+    <button class="navBtn" id="navBtn-leaderboard" onclick="showTab('leaderboard')">
+        <span class="navIcon">🏆</span><span>ደረጃ</span>
+    </button>
+    <button class="navBtn" id="navBtn-wallet" onclick="showTab('wallet')">
+        <span class="navIcon">💰</span><span>ዋሌት</span>
+    </button>
+    <button class="navBtn" id="navBtn-profile" onclick="showTab('profile')">
+        <span class="navIcon">👤</span><span>መገለጫ</span>
+    </button>
+</nav>
 
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
