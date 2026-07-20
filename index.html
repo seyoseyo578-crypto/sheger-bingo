@@ -1,307 +1,168 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sheger Bingo</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ሸገር ቢንጎ</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- ===== WELCOME SCREEN ===== -->
-<div id="screen-welcome" class="screen active">
-  <header class="app-header">
-    <div class="header-logo">
-      <img src="logo.png" alt="Sheger Bingo" class="header-logo-img">
-      <span class="header-title">Sheger Bingo</span>
-    </div>
-    <div class="wallet-chip" onclick="navigate('settings')">
-      <span class="wallet-icon">💰</span>
-      <span id="walletDisplay">0 ብር</span>
-    </div>
-  </header>
-
-  <main class="welcome-main">
-    <div class="hero-banner">
-      <div class="hero-bg"></div>
-      <div class="hero-content">
-        <h2 class="hero-title">እንኳን በደህና መጡ!</h2>
-        <p class="hero-subtitle">ካርቴላዎን ይምረጡ፣ ይመዝገቡ<br>እና አሸናፊ ይሁኑ!</p>
-        <button class="btn-primary btn-large" onclick="navigate('game')">
-          ▶ ጨዋታ ይጀምሩ
-        </button>
-      </div>
-    </div>
-
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-label">የዕለቱ መግቢያ</div>
-        <div class="stat-value" id="welcomeBetDisplay">10 ብር</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">ተጫዋቾች</div>
-        <div class="stat-value">+2,450</div>
-      </div>
-    </div>
-
-    <div class="card-section">
-      <div class="section-header">
-        <span class="section-title">የቅርብ ጊዜ አሸናፊዎች</span>
-      </div>
-      <div class="winners-list">
-        <div class="winner-row">
-          <div class="winner-badge">#142</div>
-          <div class="winner-info"><div class="winner-name">አሸናፊ</div><div class="winner-time">2 ደቂቃ በፊት</div></div>
-          <div class="winner-prize">+375 ብር</div>
-        </div>
-        <div class="winner-row">
-          <div class="winner-badge">#8</div>
-          <div class="winner-info"><div class="winner-name">አሸናፊ</div><div class="winner-time">15 ደቂቃ በፊት</div></div>
-          <div class="winner-prize">+1500 ብር</div>
-        </div>
-        <div class="winner-row">
-          <div class="winner-badge">#89</div>
-          <div class="winner-info"><div class="winner-name">አሸናፊ</div><div class="winner-time">1 ሰዓት በፊት</div></div>
-          <div class="winner-prize">+750 ብር</div>
-        </div>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- ===== GAME SCREEN ===== -->
-<div id="screen-game" class="screen">
-  <header class="game-header">
-    <div class="game-header-row">
-      <span class="status-badge" id="roundStatus">ምዝገባ ክፍት</span>
-      <div class="prize-chip">
-        <span class="prize-label">ሽልማት</span>
-        <span class="prize-amount" id="prizeDisplay">0 ብር</span>
-      </div>
-    </div>
-    <div class="countdown-bar" id="countdownBar">
-      <span id="countdownText">01:00</span>
-      <span class="countdown-label">አዲስ ዙር ይጀምራል</span>
-    </div>
-  </header>
-
-  <main class="game-main">
-    <!-- BINGO Machine (full number board) -->
-    <div class="machine-section">
-      <div class="current-call-area">
-        <div id="currentCallBall" class="call-ball">-</div>
-        <div class="call-label">የተጠራው ቁጥር</div>
-      </div>
-      <div class="bingo-machine">
-        <div class="machine-header">
-          <div class="mh-cell bingo-b">B</div>
-          <div class="mh-cell bingo-i">I</div>
-          <div class="mh-cell bingo-n">N</div>
-          <div class="mh-cell bingo-g">G</div>
-          <div class="mh-cell bingo-o">O</div>
-        </div>
-        <div class="machine-grid" id="machineGrid"></div>
-      </div>
-    </div>
-
-    <!-- Player's Cartela -->
-    <div class="cartela-section card-section">
-      <div class="cartela-header-row">
-        <span class="cartela-title" id="cartelaTitle">ካርቴላ አልተመረጠም</span>
-        <button class="btn-select" onclick="openCartelaModal()">+ ምረጥ</button>
-      </div>
-      <div class="bingo-card-wrap">
-        <div class="bingo-card-header">
-          <div class="bc-head bingo-b">B</div>
-          <div class="bc-head bingo-i">I</div>
-          <div class="bc-head bingo-n">N</div>
-          <div class="bc-head bingo-g">G</div>
-          <div class="bc-head bingo-o">O</div>
-        </div>
-        <div class="bingo-card-grid" id="cartelaGrid"></div>
-      </div>
-
-      <div class="action-row">
-        <button class="btn-register" id="registerBtn" onclick="registerCartela()" disabled>አመዝግብ</button>
-        <button class="btn-bingo" id="bingoBtn" onclick="claimBingo()" disabled>🏆 BINGO!</button>
-      </div>
-    </div>
-
-    <!-- Called numbers row -->
-    <div class="card-section">
-      <div class="section-title">የተጠሩ ቁጥሮች</div>
-      <div class="called-balls" id="calledBalls"></div>
-    </div>
-  </main>
-</div>
-
-<!-- ===== MENU SCREEN ===== -->
-<div id="screen-menu" class="screen">
-  <header class="app-header">
-    <div class="header-logo">
-      <img src="logo.png" alt="Sheger Bingo" class="header-logo-img">
-      <span class="header-title">ጨዋታዎች</span>
-    </div>
-  </header>
-  <main class="menu-main">
-    <div class="card-section">
-      <div class="section-title">ብልጫ ምረጥ</div>
-      <div id="gamesList"></div>
-    </div>
-
-    <div class="card-section">
-      <div class="leaderboard-tabs">
-        <button class="tab-btn active" onclick="switchTab('daily', this)">ዕለታዊ</button>
-        <button class="tab-btn" onclick="switchTab('weekly', this)">ሳምንታዊ</button>
-        <button class="tab-btn" onclick="switchTab('monthly', this)">ወርሃዊ</button>
-      </div>
-      <div class="section-title" style="margin-top:12px">ቀዳሚ ተጫዋቾች</div>
-      <div id="leaderboardList"></div>
-    </div>
-  </main>
-</div>
-
-<!-- ===== SETTINGS SCREEN ===== -->
-<div id="screen-settings" class="screen">
-  <header class="app-header">
-    <div class="header-logo">
-      <img src="logo.png" alt="Sheger Bingo" class="header-logo-img">
-      <span class="header-title">ቅንብሮች</span>
-    </div>
-    <div class="wallet-chip">
-      <span>💰</span>
-      <span id="settingsWalletDisplay">0 ብር</span>
-    </div>
-  </header>
-  <main class="settings-main">
-
-    <!-- Bet per cartela -->
-    <div class="card-section">
-      <div class="section-title">💵 ዋጋ ለካርቴላ (ብር)</div>
-      <input type="number" id="betInput" class="form-input" value="10" min="1" placeholder="ለምሳሌ 10">
-      <button class="btn-secondary" onclick="saveBet()">ዋጋ ለውጥ</button>
-    </div>
-
-    <!-- DEPOSIT -->
-    <div class="card-section">
-      <div class="section-title">💰 ገንዘብ ማስገባት (Deposit)</div>
-      <div class="info-box">
-        <div class="info-row">
-          <span class="info-label">Telebirr:</span>
-          <span class="info-value" onclick="copyText('+251964796846')">+251964796846 📋</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">ስም:</span>
-          <span class="info-value">SUED MEBRAHTU</span>
-        </div>
-        <div class="info-divider"></div>
-        <div class="info-row">
-          <span class="info-label">ንግድ ባንክ (CBE):</span>
-          <span class="info-value" onclick="copyText('1000615139126')">1000615139126 📋</span>
-        </div>
-        <div class="info-row">
-          <span class="info-label">ስም:</span>
-          <span class="info-value">SIED MEBRAHTU</span>
-        </div>
-      </div>
-
-      <div class="deposit-steps">
-        <div class="step">1️⃣ ወደ ላይ ወዳለው አካውንት ገንዘብ ላክ</div>
-        <div class="step">2️⃣ የክፍያ ማረጋገጫ ቁጥር ይዘው ጸለፉ</div>
-        <div class="step">3️⃣ ከዚህ በታች ፎርሙን ሙሉ</div>
-      </div>
-
-      <input type="number" id="depositAmount" class="form-input" placeholder="መጠን (ብር)">
-      <select id="depositMethod" class="form-select">
-        <option value="telebirr">Telebirr</option>
-        <option value="cbe">ንግድ ባንክ (CBE)</option>
-      </select>
-      <input type="text" id="depositRef" class="form-input" placeholder="Transaction ID (ምሳሌ: CE535PPHGP)" style="text-transform:uppercase">
-      <button class="btn-primary" onclick="submitDeposit()">✅ Deposit ማረጋገጫ ላክ</button>
-    </div>
-
-    <!-- WITHDRAW -->
-    <div class="card-section">
-      <div class="section-title">💸 ገንዘብ ማውጣት (Withdraw)</div>
-      <div class="info-row" style="margin-bottom:10px">
-        <span class="info-label">ዝቅተኛ መጠን:</span>
-        <span class="info-value" style="color:#f97316;font-weight:bold">200 ብር</span>
-      </div>
-      <input type="number" id="withdrawAmount" class="form-input" placeholder="መጠን (ብር) — ቢያንስ 200">
-      <select id="withdrawMethod" class="form-select">
-        <option value="telebirr">Telebirr</option>
-        <option value="cbe">ንግድ ባንክ (CBE)</option>
-      </select>
-      <input type="text" id="withdrawAccount" class="form-input" placeholder="Telebirr/CBE ቁጥር">
-      <button class="btn-secondary" onclick="submitWithdraw()">📤 Withdraw ጠይቅ</button>
-    </div>
-
-    <!-- Dark mode -->
-    <div class="card-section">
-      <div class="setting-row">
-        <span>Dark / Light Mode</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="darkToggle" onchange="toggleDark(this)">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-    </div>
-  </main>
-</div>
-
-<!-- ===== CARTELA PICKER MODAL ===== -->
-<div id="cartelaModal" class="modal-overlay hidden" onclick="closeCartelaModal(event)">
-  <div class="modal-box">
-    <div class="modal-header">
-      <span>ካርቴላ ምረጥ (1–250)</span>
-      <button class="modal-close" onclick="closeCartelaModal()">✕</button>
-    </div>
-    <div class="cartela-picker-grid" id="cartelaPickerGrid"></div>
+<header>
+  <div class="icon-btn" onclick="darkMode()">⚙️</div>
+  <div class="brand">
+    <img src="logo.png" alt="Sheger Bingo Logo" class="logo">
+    <h1>ሸገር ቢንጎ</h1>
   </div>
+  <div class="icon-btn" onclick="toggleTopMenu()">☰</div>
+</header>
+
+<div id="topMenuPanel" class="hidden">
+  <button onclick="openModal('depositModal')">💰 Deposit</button>
+  <button onclick="openModal('withdrawModal')">💸 Withdraw</button>
+  <button onclick="darkMode()">🌓 Dark / Light</button>
+  <button onclick="alert('ሸገር ቢንጎ v1.0\nለጥያቄ: Telegram Support ያግኙን።')">ℹ️ About / Support</button>
 </div>
 
-<!-- ===== DEPOSIT CONFIRM MODAL ===== -->
+<div class="container">
+
+  <!-- ================= PLAY TAB ================= -->
+  <div id="tab-play">
+
+    <div class="balance-strip">
+      <span>💳 Wallet Balance</span>
+      <b id="balanceTop">0 ETB</b>
+    </div>
+
+    <!-- Stakes / rooms list -->
+    <div id="stakesView">
+      <div class="section-title">🎯 የስቴክ ክፍሎች — Stake ይምረጡ</div>
+      <div id="stakesList"></div>
+    </div>
+
+    <!-- Active room -->
+    <div id="roomView" class="hidden">
+      <div class="plus-row" style="justify-content:space-between;">
+        <button onclick="leaveRoom()">⬅ Back</button>
+        <b id="roomStakeLabel"></b>
+      </div>
+
+      <div class="round-status" id="roundStatus">-</div>
+      <div class="room-win-banner">🏆 Possible Win: <span id="roomPossibleWin">0 ETB</span></div>
+
+      <div class="section-title">🎱 Bingo Machine Table</div>
+      <div id="callBoard" class="call-board"></div>
+
+      <div class="active-number-box">
+        <span class="muted">የተጠራው ቁጥር</span>
+        <div id="activeNumber" class="circle">-</div>
+      </div>
+
+      <div class="section-title">🎫 Bingo Card</div>
+      <div id="cardsRow" class="cards-row"></div>
+
+      <button class="bingo-claim-btn" id="bingoClaimBtn" onclick="claimBingo()" disabled>🦁 BINGO</button>
+
+      <div id="cardsPanel" class="panel hidden">
+        <h3>ካርቴላ ይምረጡ (1–250)</h3>
+        <div id="cardsList" class="cards-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= SCORES TAB ================= -->
+  <div id="tab-scores" class="hidden">
+    <div class="panel">
+      <h3>🏆 Scores — Top players and champions</h3>
+      <div class="list-row"><span>🥇 Sami</span><b>77 wins</b></div>
+      <div class="list-row"><span>🥈 Getabalew</span><b>75 wins</b></div>
+      <div class="list-row"><span>🥉 Enoch</span><b>73 wins</b></div>
+      <div class="list-row"><span>4. Selam</span><b>53 wins</b></div>
+      <div class="list-row"><span>5. Habtamu</span><b>46 wins</b></div>
+      <p class="muted">Demo data — ትክክለኛው ደረጃ Backend ሲገናኝ ይታያል።</p>
+    </div>
+  </div>
+
+  <!-- ================= HISTORY TAB ================= -->
+  <div id="tab-history" class="hidden">
+    <div class="panel">
+      <h3>📄 History</h3>
+      <p class="muted">እስካሁን ምንም ጨዋታ አልተጫወቱም። ጨዋታ ከተጫወቱ በኋላ እዚህ ይታያል።</p>
+    </div>
+  </div>
+
+  <!-- ================= WALLET TAB ================= -->
+  <div id="tab-wallet" class="hidden">
+    <div class="panel">
+      <h3>💳 Wallet Balance</h3>
+      <div class="balance-strip"><span>Balance</span><b id="profileBalance">ETB 0</b></div>
+    </div>
+
+    <div class="panel">
+      <h3>📋 Transactions</h3>
+      <div class="list-row" onclick="openModal('depositModal')" style="cursor:pointer;">
+        <span>💰 Deposit</span><span>›</span>
+      </div>
+      <div class="list-row" onclick="openModal('withdrawModal')" style="cursor:pointer;">
+        <span>💸 Withdraw</span><span>›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= PROFILE TAB ================= -->
+  <div id="tab-profile" class="hidden">
+    <div class="panel">
+      <h3>👤 Player Profile</h3>
+      <div class="list-row"><span>Games Played</span><b id="statGames">0</b></div>
+      <div class="list-row"><span>Total Winnings</span><b id="statWinnings">ETB 0</b></div>
+      <div class="list-row"><span>Winnings</span><b id="profileWinningsMini">ETB 0</b></div>
+    </div>
+    <div class="panel">
+      <h3>⚙️ Settings</h3>
+      <button onclick="darkMode()">Dark / Light Mode</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= Deposit / Withdraw modals ================= -->
 <div id="depositModal" class="modal-overlay hidden">
   <div class="modal-box">
-    <div class="modal-header">
-      <span>✅ ማረጋገጫ</span>
-      <button class="modal-close" onclick="closeDepositModal()">✕</button>
-    </div>
-    <div class="deposit-confirm-body">
-      <div class="confirm-icon">⏳</div>
-      <h3 class="confirm-title">Deposit ተልኳል!</h3>
-      <div class="confirm-detail" id="confirmDetail"></div>
-      <p class="confirm-note">Admin ያረጋግጡና ቀሪ ቁጥር ይደርስዎታል። ከ5-30 ደቂቃ ሊወስድ ይችላል።</p>
-      <button class="btn-primary" onclick="closeDepositModal()">እሺ, ገባኝ</button>
-    </div>
+    <div class="modal-header"><h3>💰 Deposit</h3><span class="modal-close" onclick="closeModal('depositModal')">×</span></div>
+    <p>Telebirr: SUED<br>+251964796846</p>
+    <p>ንግድ ባንክ:<br>SIED MEBRAHTU<br>1000615139126</p>
+    <input id="depositAmount" type="number" placeholder="መጠን ብር">
+    <input id="depositProof" type="text" placeholder="የክፍያ ማረጋገጫ">
+    <button onclick="sendDeposit()">Deposit ላክ</button>
   </div>
 </div>
 
-<!-- ===== WINNER MODAL ===== -->
-<div id="winnerModal" class="modal-overlay hidden">
-  <div class="modal-box winner-modal-box">
-    <div class="winner-confetti">🎉</div>
-    <h2 class="winner-title" id="winnerTitle">BINGO!</h2>
-    <div class="winner-prize-display" id="winnerPrizeDisplay"></div>
-    <p class="winner-note" id="winnerNote"></p>
-    <button class="btn-primary" onclick="closeWinnerModal()">እሺ</button>
+<div id="withdrawModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3>💸 Withdraw</h3><span class="modal-close" onclick="closeModal('withdrawModal')">×</span></div>
+    <p>Minimum Withdraw: 200 ብር</p>
+    <input id="withdrawAmount" type="number" placeholder="መጠን">
+    <input id="withdrawAccount" type="text" placeholder="Telebirr/CBE ቁጥር">
+    <button onclick="sendWithdraw()">Withdraw ጠይቅ</button>
   </div>
 </div>
 
-<!-- ===== BOTTOM NAV ===== -->
+<!-- ================= BOTTOM NAV ================= -->
 <nav class="bottom-nav">
-  <button class="nav-btn active" id="nav-welcome" onclick="navigate('welcome')">
-    <span class="nav-icon">🏠</span>
-    <span class="nav-label">Welcome</span>
+  <button class="nav-btn" id="navbtn-scores" onclick="switchTab('scores')">
+    <span class="nav-icon">📊</span>Scores
   </button>
-  <button class="nav-btn" id="nav-menu" onclick="navigate('menu')">
-    <span class="nav-icon">⊞</span>
-    <span class="nav-label">Menu</span>
+  <button class="nav-btn" id="navbtn-history" onclick="switchTab('history')">
+    <span class="nav-icon">📄</span>History
   </button>
-  <button class="nav-btn" id="nav-settings" onclick="navigate('settings')">
-    <span class="nav-icon">⚙</span>
-    <span class="nav-label">Settings</span>
+  <button class="nav-btn play-btn active" id="navbtn-play" onclick="switchTab('play')">
+    <span class="nav-icon">🔗</span>Play
+  </button>
+  <button class="nav-btn" id="navbtn-wallet" onclick="switchTab('wallet')">
+    <span class="nav-icon">👛</span>Wallet
+  </button>
+  <button class="nav-btn" id="navbtn-profile" onclick="switchTab('profile')">
+    <span class="nav-icon">👤</span>Profile
   </button>
 </nav>
 
