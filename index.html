@@ -67,9 +67,9 @@
 
     <h1 id="activeNumber">-</h1>
 
-    <button id="callerStartBtn" onclick="startCaller()">
-    ▶ Start
-    </button>
+    <div id="gameStatus" class="gameStatus">
+    🕒 ቀጣይ ጨዋታ በ <span id="countdown">60</span> ሰከንድ ውስጥ በራስ-ሰር ይጀምራል
+    </div>
 
     <h3 style="margin-top:15px;">የተጠሩ ቁጥሮች</h3>
 
@@ -82,7 +82,7 @@
 
     <h2>🎫 ካርቴላ ምረጥ</h2>
 
-    <button onclick="openCards()">
+    <button id="openCardsBtn" onclick="openCards()">
     + ካርቴላ ይጨምሩ
     </button>
 
@@ -242,6 +242,8 @@
     </div>
 
     <div id="cards" class="cardGrid"></div>
+
+    <div id="cardPickerSelectedList" class="cardPickerSelectedList"></div>
 
     <div class="cardPickerFooter">
         <div>
