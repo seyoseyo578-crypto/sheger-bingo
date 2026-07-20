@@ -11,6 +11,7 @@ body{
     color:#222;
     transition:background .2s,color .2s;
     position:relative;
+    padding-bottom:70px;
 }
 
 
@@ -36,12 +37,25 @@ body.dark{
     color:#eee;
 }
 
-body.dark header,
+body.dark .topbar,
 body.dark .info div,
 body.dark .panel,
 body.dark .modalBox{
     background:#1e1e1e;
     color:#eee;
+}
+
+body.dark .bottomNav{
+    background:#1e1e1e;
+    border-color:#444;
+}
+
+body.dark .navBtn{
+    color:#aaa;
+}
+
+body.dark .navBtn.active{
+    color:#4fa8ff;
 }
 
 body.dark #bingoTable td{
@@ -62,9 +76,9 @@ body.dark input{
 }
 
 
-/* ---------- Menu Panel (Deposit / Withdraw) ---------- */
+/* ---------- Tab visibility ---------- */
 
-#menuPanel.hidden{
+.tabContent.hidden{
     display:none;
 }
 
@@ -116,52 +130,73 @@ body.dark input{
 }
 
 
-/* Welcome */
+/* ---------- Top bar (compact, replaces the old big welcome banner) ---------- */
 
-.welcome{
-    text-align:center;
+.topbar{
+    display:flex;
+    align-items:center;
+    gap:10px;
     background:#008cff;
     color:white;
-    padding:25px 10px;
+    padding:10px 15px;
 }
 
-
-.welcome img.logo{
-    width:130px;
-    height:auto;
-    border-radius:10px;
-    margin-bottom:10px;
+.topbarLogo{
+    width:36px;
+    height:36px;
+    border-radius:8px;
     background:white;
-    padding:4px;
+    padding:2px;
+    object-fit:contain;
+}
+
+.topbar h2{
+    flex:1;
+    font-size:18px;
+}
+
+.topbarBalance{
+    font-size:13px;
+    background:rgba(255,255,255,0.2);
+    padding:6px 10px;
+    border-radius:20px;
 }
 
 
-.welcome h1{
-    font-size:28px;
-}
+/* ---------- Bottom Navigation ---------- */
 
-
-.welcome h2{
-    margin-top:10px;
-}
-
-
-
-/* Header */
-
-header{
+.bottomNav{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
     display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:15px;
     background:white;
-    margin:10px;
-    border-radius:12px;
+    border-top:1px solid #ddd;
+    z-index:1500;
 }
 
+.navBtn{
+    flex:1;
+    background:none;
+    color:#666;
+    border:none;
+    border-radius:0;
+    padding:8px 0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:2px;
+    font-size:12px;
+}
 
-header button{
-    margin-left:5px;
+.navBtn .navIcon{
+    font-size:20px;
+}
+
+.navBtn.active{
+    color:#008cff;
+    font-weight:bold;
 }
 
 
