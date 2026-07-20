@@ -15,6 +15,28 @@ const MIN_WITHDRAW = 200;
 const CALL_INTERVAL_MS = 5000;
 const FREE_CARDS = [46, 68]; // always free, always registered automatically
 
+// Keeps every on-screen balance display (game tab, card picker, top bar,
+// profile tab) in sync — call this any time `balance` changes.
+function updateBalanceDisplays() {
+    let text = balance + " ብር";
+    let ids = ["balance", "pickerBalance", "topbarBalanceValue", "profileBalance"];
+    ids.forEach(id => {
+        let el = document.getElementById(id);
+        if (el) el.innerHTML = text;
+    });
+}
+
+
+/* ---------- Bottom Navigation Tabs ---------- */
+
+function showTab(name) {
+    document.querySelectorAll(".tabContent").forEach(el => el.classList.add("hidden"));
+    document.getElementById("tab-" + name).classList.remove("hidden");
+
+    document.querySelectorAll(".navBtn").forEach(btn => btn.classList.remove("active"));
+    document.getElementById("navBtn-" + name).classList.add("active");
+}
+
 
 /* ---------- Telegram Mini App integration ---------- */
 /* NOTE: the bot's API token must never appear in this front-end code.
@@ -181,7 +203,7 @@ function openCards() {
     let box = document.getElementById("cardList");
     box.classList.remove("hidden");
 
-    document.getElementById("pickerBalance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
 
     let cards = document.getElementById("cards");
     cards.innerHTML = "";
@@ -237,8 +259,7 @@ function selectCard(number, button) {
         button.classList.add("selectedCard");
     }
 
-    document.getElementById("balance").innerHTML = balance + " ብር";
-    document.getElementById("pickerBalance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
 
     document.getElementById("selectedCount").innerHTML = selectedCards.length;
     document.getElementById("selectedCountModal").innerHTML = selectedCards.length;
@@ -264,7 +285,7 @@ function registerSingleCard(cardNumber) {
     balance -= CARD_PRICE;
     registeredCards.push(cardNumber);
 
-    document.getElementById("balance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
     showSelectedCards();
 }
 
@@ -291,7 +312,7 @@ function registerCards() {
         }
     });
 
-    document.getElementById("balance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
     showSelectedCards();
 
     let box = document.getElementById("cardList");
@@ -449,11 +470,7 @@ function checkBingo() {
 }
 
 
-/* ---------- Menu (Deposit / Withdraw live inside it) ---------- */
-
-function toggleMenu() {
-    document.getElementById("menuPanel").classList.toggle("hidden");
-}
+/* ---------- Wallet: Deposit / Withdraw (now in the 💰 ዋሌት tab) ---------- */
 
 function sendDeposit() {
     let amountInput = document.getElementById("depositAmount");
@@ -465,7 +482,7 @@ function sendDeposit() {
     }
 
     balance += amount;
-    document.getElementById("balance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
     amountInput.value = "";
 
     alert("Deposit ተጨምሯል ✅");
@@ -486,22 +503,14 @@ function sendWithdraw() {
     }
 
     balance -= amount;
-    document.getElementById("balance").innerHTML = balance + " ብር";
+    updateBalanceDisplays();
     amountInput.value = "";
 
     alert("Withdraw ጥያቄ ተልኳል ✅");
 }
 
 
-/* ---------- Settings (theme + sound) — only closes via the ✕ button ---------- */
-
-function openSettings() {
-    document.getElementById("settingsModal").classList.remove("hidden");
-}
-
-function closeSettings() {
-    document.getElementById("settingsModal").classList.add("hidden");
-}
+/* ---------- Settings (theme + sound) — now in the 👤 መገለጫ tab ---------- */
 
 function toggleTheme() {
     document.body.classList.toggle("dark");
