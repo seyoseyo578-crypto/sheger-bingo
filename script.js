@@ -1,15 +1,30 @@
 /* =======================================================
    Sheger Bingo — script.js
-   Multi-stake rooms, multi-card play (+ / ×), live jackpot,
-   big horizontal calling board, modal deposit/withdraw.
+   Production-shaped frontend: persistent wallet (localStorage),
+   pending-approval deposit/withdraw, Admin panel, Telegram
+   WebApp user identification, verified-win receipts,
+   multi-card play, live per-stake jackpots.
+
+   NOTE ON "REAL MONEY" — read this before going live:
+   This file makes the app behave like a real product (data
+   persists, deposits/withdraws need Admin approval, wins are
+   checked against the actual called numbers). But because it
+   runs entirely in the player's browser, a determined user
+   could edit this code on their own device. For real-money
+   operation you should NOT trust the client for final balance
+   or win decisions — put the wallet ledger, round state and
+   win verification on a server you control (see the ADMIN /
+   apiRequest() notes below for where that plugs in), and only
+   use this file for the UI.
    ======================================================= */
 
 /* ---------- Config ---------- */
-const TOTAL_CARDS   = 250;
-const ADMIN_CARDS   = [48, 68];
-const STAKES        = [10, 20, 30, 50, 80, 100, 150];
-const WINNER_SHARE  = 0.75;   // ለአሸናፊ 75%
-const ADMIN_SHARE   = 0.25;   // ለAdmin (ተቆራጭ) 25% -- backend/ወደፊት ተግባራዊ ይሆናል
+const TOTAL_CARDS    = 250;
+const ADMIN_CARDS    = [48, 68];
+const STAKES         = [10, 20, 30, 50, 80, 100, 150];
+const WINNER_SHARE   = 0.75;   // ለአሸናፊ 75%
+const ADMIN_SHARE    = 0.25;   // ለAdmin (ተቆራጭ) 25%
+const ADMIN_PASSWORD = "sheger-admin"; // ⚠️ ከመጀመርዎ በፊት ይቀይሩት! (real ስሪት ላይ ወደ backend ይዛወራል)
 
 const COLUMN_RANGES = {
   0: { letter: "B", min: 1,  max: 15 },
@@ -19,23 +34,73 @@ const COLUMN_RANGES = {
   4: { letter: "O", min: 61, max: 75 },
 };
 
-/* ---------- Global demo state ---------- */
-let balance        = 0;
-let gamesPlayed     = 0;
-let totalWinnings  = 0;
-let currentRoomStake = null; // stake of the room currently open on screen
-const cardCache = {};        // seeded card layouts, shared across all rooms
+/* =======================================================
+   Player identity — use the real Telegram user when this
+   runs inside Telegram, otherwise a local guest profile.
+   ======================================================= */
+let tgUser = null;
+if (window.Telegram && window.Telegram.WebApp) {
+  try {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    tgUser = window.Telegram.WebApp.initDataUnsafe?.user || null;
+  } catch (e) { /* not inside Telegram */ }
+}
+const USER_ID   = tgUser ? String(tgUser.id) : "guest";
+const STORE_KEY = "shegerBingo_" + USER_ID;
+
+/* =======================================================
+   Persistent state (localStorage stands in for a backend
+   database until this is wired to a real server)
+   ======================================================= */
+let state = loadState();
+
+function defaultState() {
+  return {
+    balance: 0,
+    gamesPlayed: 0,
+    totalWinnings: 0,
+    isAdmin: false,
+    adminEarnings: 0,
+    transactions: [],  // {id, type:'deposit'|'withdraw', amount, proof/account, status:'pending'|'approved'|'rejected', time}
+    gameHistory: [],   // {id, stake, card, pattern, payout, time}
+  };
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    return raw ? Object.assign(defaultState(), JSON.parse(raw)) : defaultState();
+  } catch (e) {
+    return defaultState();
+  }
+}
+
+function saveState() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(state));
+  } catch (e) { /* storage unavailable */ }
+}
+
+/* Convenience accessors kept short for the rest of the file */
+Object.defineProperty(window, "balance", {
+  get() { return state.balance; },
+  set(v) { state.balance = v; saveState(); },
+});
+
+let currentRoomStake = null;
+const cardCache = {};
 
 /* ---------- Rooms (one per stake) ---------- */
 const rooms = {};
 STAKES.forEach((stake) => {
   rooms[stake] = {
     stake,
-    state: "registration",           // "registration" | "playing"
+    state: "registration",
     secondsLeft: randInt(15, 60),
-    registeredCount: randInt(3, 45), // simulated pool of other players
+    registeredCount: randInt(3, 45), // simulated pool of other players' cards
     calledNumbers: [],
-    cards: [],                       // this player's cards in this room: [{number}]
+    cards: [], // this player's cards in this room: [{number}]
   };
 });
 
@@ -44,8 +109,7 @@ function randInt(min, max) {
 }
 
 /* =======================================================
-   Seeded random layout generator (same card # = same layout
-   for every player, every room)
+   Seeded card layout generator (same card # = same layout)
    ======================================================= */
 function mulberry32(seed) {
   return function () {
@@ -94,18 +158,23 @@ function ballClass(num) {
   if (num <= 60) return "ball-g";
   return "ball-o";
 }
+function colLetterOf(col) { return COLUMN_RANGES[col].letter.toLowerCase(); }
 
 const $ = (id) => document.getElementById(id);
 
 /* =======================================================
-   Bottom nav tabs (Scores / History / Play / Wallet / Profile)
+   Bottom nav tabs (Scores / History / Play / Wallet / Profile
+   / Admin — Admin has no bottom-nav icon, opened via ☰ menu)
    ======================================================= */
 function switchTab(tab) {
-  ["scores", "history", "play", "wallet", "profile"].forEach((t) => {
+  ["scores", "history", "play", "wallet", "profile", "admin"].forEach((t) => {
     $("tab-" + t).classList.toggle("hidden", t !== tab);
-    $("navbtn-" + t).classList.toggle("active", t === tab);
+    const nav = $("navbtn-" + t);
+    if (nav) nav.classList.toggle("active", t === tab);
   });
   $("topMenuPanel").classList.add("hidden");
+  if (tab === "history") renderHistory();
+  if (tab === "admin") renderAdminPanel();
 }
 
 function toggleTopMenu() {
@@ -116,13 +185,43 @@ function darkMode() {
   document.body.classList.toggle("dark");
 }
 
-/* ---------- Deposit / Withdraw modals ---------- */
+/* ---------- Modals ---------- */
 function openModal(id) {
   $("topMenuPanel").classList.add("hidden");
   $(id).classList.remove("hidden");
 }
 function closeModal(id) {
   $(id).classList.add("hidden");
+}
+
+/* =======================================================
+   Admin login / logout
+   ======================================================= */
+function adminLogin() {
+  $("topMenuPanel").classList.add("hidden");
+  const pass = prompt("የAdmin የይለፍ ቃል ያስገቡ:");
+  if (pass === null) return;
+  if (pass === ADMIN_PASSWORD) {
+    state.isAdmin = true;
+    saveState();
+    updateAdminMenuVisibility();
+    alert("✅ እንደ Admin ገብተዋል።");
+    switchTab("admin");
+  } else {
+    alert("❌ የተሳሳተ የይለፍ ቃል።");
+  }
+}
+
+function adminLogout() {
+  state.isAdmin = false;
+  saveState();
+  updateAdminMenuVisibility();
+  switchTab("play");
+}
+
+function updateAdminMenuVisibility() {
+  $("adminLoginBtn").classList.toggle("hidden", state.isAdmin);
+  $("adminPanelBtn").classList.toggle("hidden", !state.isAdmin);
 }
 
 /* =======================================================
@@ -238,19 +337,18 @@ function renderCardsList() {
   }
 }
 
-/* Add a card: pay the stake immediately and register it */
 function addCard(number) {
   const room = rooms[currentRoomStake];
   if (room.state !== "registration") {
     alert("ምዝገባ ዝግ ነው። ቀጣዩ ዙር ሲጀምር ይሞክሩ።");
     return;
   }
-  if (balance < room.stake) {
+  if (state.balance < room.stake) {
     alert("በቂ ቀሪ ሂሳብ የለዎትም። እባክዎ Deposit ያድርጉ።");
     return;
   }
 
-  balance -= room.stake;
+  window.balance -= room.stake;
   room.registeredCount += 1;
   room.cards.push({ number });
 
@@ -259,7 +357,6 @@ function addCard(number) {
   renderRoomCards();
 }
 
-/* Remove a card with the (×) button — refunds the stake */
 function removeCard(number) {
   const room = rooms[currentRoomStake];
   if (room.state !== "registration") {
@@ -271,7 +368,7 @@ function removeCard(number) {
 
   room.cards.splice(idx, 1);
   room.registeredCount -= 1;
-  balance += room.stake;
+  window.balance += room.stake;
 
   updateBalanceUI();
   renderRoomCards();
@@ -279,6 +376,8 @@ function removeCard(number) {
 
 /* =======================================================
    Render the player's cards row (+ add tile / × remove)
+   Column letters are colour-coded on the header AND on
+   every number, matching classic bingo card styling.
    ======================================================= */
 function renderRoomCards() {
   const room = rooms[currentRoomStake];
@@ -305,6 +404,7 @@ function buildCardPanel(cardNumber, room) {
   const removeBtn = document.createElement("div");
   removeBtn.className = "card-remove-btn";
   removeBtn.textContent = "×";
+  removeBtn.title = "ካርቴላ አስወግድ";
   removeBtn.onclick = () => removeCard(cardNumber);
   panel.appendChild(removeBtn);
 
@@ -334,7 +434,7 @@ function buildCardPanel(cardNumber, room) {
         cell.className = "cell free";
         cell.textContent = "FREE";
       } else {
-        cell.className = "cell";
+        cell.className = "cell num-" + colLetterOf(c);
         cell.textContent = value;
         cell.dataset.number = value;
         if (room.calledNumbers.includes(value)) cell.classList.add("marked");
@@ -349,7 +449,8 @@ function buildCardPanel(cardNumber, room) {
 
 /* =======================================================
    Big calling board — "Bingo Machine Table"
-   One horizontal row per letter (B/I/N/G/O), scrollable.
+   Fixed grid (no horizontal scroll): one row per letter,
+   all 15 numbers of that letter always visible at once.
    ======================================================= */
 function buildCallBoardOnce() {
   const board = $("callBoard");
@@ -404,10 +505,11 @@ function renderRoomStatus() {
 }
 
 /* =======================================================
-   BINGO check — row / column / diagonal, across all of the
-   player's cards in this room
+   Game rule: WIN = any complete row / column / diagonal
+   OR all four corner squares. Returns the pattern name
+   (used in the winner receipt) or null.
    ======================================================= */
-function cardHasLine(cardNumber, calledNumbers) {
+function checkCardPattern(cardNumber, calledNumbers) {
   const columns = getCardLayout(cardNumber);
   const marked = [];
   for (let r = 0; r < 5; r++) {
@@ -417,13 +519,25 @@ function cardHasLine(cardNumber, calledNumbers) {
     }
   }
   const idx = (r, c) => r * 5 + c;
-  for (let r = 0; r < 5; r++) if ([0, 1, 2, 3, 4].every((c) => marked[idx(r, c)])) return true;
-  for (let c = 0; c < 5; c++) if ([0, 1, 2, 3, 4].every((r) => marked[idx(r, c)])) return true;
-  if ([0, 1, 2, 3, 4].every((i) => marked[idx(i, i)])) return true;
-  if ([0, 1, 2, 3, 4].every((i) => marked[idx(i, 4 - i)])) return true;
-  return false;
+
+  for (let r = 0; r < 5; r++) {
+    if ([0, 1, 2, 3, 4].every((c) => marked[idx(r, c)])) return "Row " + (r + 1);
+  }
+  for (let c = 0; c < 5; c++) {
+    if ([0, 1, 2, 3, 4].every((r) => marked[idx(r, c)])) return "Column " + ["B","I","N","G","O"][c];
+  }
+  if ([0, 1, 2, 3, 4].every((i) => marked[idx(i, i)])) return "Diagonal";
+  if ([0, 1, 2, 3, 4].every((i) => marked[idx(i, 4 - i)])) return "Diagonal";
+  if (marked[idx(0,0)] && marked[idx(0,4)] && marked[idx(4,0)] && marked[idx(4,4)]) return "Four Corners";
+
+  return null;
 }
 
+/* =======================================================
+   BINGO claim — validates against the room's actual called
+   numbers, then shows a verified-winner receipt and logs
+   it to Game History.
+   ======================================================= */
 function claimBingo() {
   const room = rooms[currentRoomStake];
   if (room.state !== "playing") {
@@ -435,20 +549,51 @@ function claimBingo() {
     return;
   }
 
-  const winningCard = room.cards.find((c) => cardHasLine(c.number, room.calledNumbers));
+  let winningCard = null, pattern = null;
+  for (const c of room.cards) {
+    const p = checkCardPattern(c.number, room.calledNumbers);
+    if (p) { winningCard = c.number; pattern = p; break; }
+  }
 
   if (winningCard) {
-    const win = possibleWin(room);
-    balance += win;
-    gamesPlayed += 1;
-    totalWinnings += win;
+    const pot = room.registeredCount * room.stake;
+    const win = Math.round(pot * WINNER_SHARE);
+    const adminCut = Math.round(pot * ADMIN_SHARE);
+
+    window.balance += win;
+    state.gamesPlayed += 1;
+    state.totalWinnings += win;
+    state.adminEarnings += adminCut;
+
+    const record = {
+      id: Date.now(),
+      stake: room.stake,
+      card: winningCard,
+      pattern,
+      payout: win,
+      time: new Date().toLocaleString("en-GB"),
+    };
+    state.gameHistory.unshift(record);
+    saveState();
+
     updateBalanceUI();
     updateProfileStats();
-    alert("🦁 BINGO! እንኳን ደስ አለዎት! ካርቴላ " + winningCard.number + " — " + win + " ETB አሸንፈዋል!");
+    showWinReceipt(record);
     endPlaying(room);
   } else {
     alert("ገና BINGO አልሞላም። ተጨማሪ ቁጥሮች ይጠብቁ።");
   }
+}
+
+function showWinReceipt(record) {
+  $("winReceiptBody").innerHTML =
+    '<div class="list-row"><span>ካርቴላ</span><b>' + record.card + '</b></div>' +
+    '<div class="list-row"><span>ንድፍ (Pattern)</span><b>' + record.pattern + '</b></div>' +
+    '<div class="list-row"><span>ስቴክ</span><b>' + record.stake + ' ETB</b></div>' +
+    '<div class="list-row"><span>ክፍያ</span><b>' + record.payout + ' ETB</b></div>' +
+    '<div class="list-row"><span>ሰዓት</span><b>' + record.time + '</b></div>' +
+    '<p class="muted">✅ ይህ ውጤት ከተጠሩት ቁጥሮች ጋር ተረጋግጦ ትክክለኛ ሆኖ ተገኝቷል።</p>';
+  openModal("winModal");
 }
 
 /* =======================================================
@@ -519,41 +664,49 @@ function tickRooms() {
 }
 
 /* =======================================================
-   Profile / Wallet — balance, deposit, withdraw, stats
+   Wallet — balance, deposit / withdraw (pending → Admin
+   approval, mirroring a real payment-verification flow)
    ======================================================= */
 function updateBalanceUI() {
-  $("balanceTop").textContent = balance + " ETB";
-  $("profileBalance").textContent = "ETB " + balance;
+  $("balanceTop").textContent = state.balance + " ETB";
+  $("profileBalance").textContent = "ETB " + state.balance;
 }
 
 function updateProfileStats() {
-  $("statGames").textContent = gamesPlayed;
-  $("statWinnings").textContent = "ETB " + totalWinnings;
-  $("profileWinningsMini").textContent = "ETB " + totalWinnings;
+  $("statGames").textContent = state.gamesPlayed;
+  $("statWinnings").textContent = "ETB " + state.totalWinnings;
+  $("profileWinningsMini").textContent = "ETB " + state.totalWinnings;
 }
 
 function sendDeposit() {
   const amount = Number($("depositAmount").value);
-  const proof = $("depositProof").value;
+  const proof = $("depositProof").value.trim();
 
   if (!amount || amount <= 0 || !proof) {
-    alert("ሁሉንም መረጃ ይሙሉ።");
+    alert("ሁሉንም መረጃ ይሙሉ (መጠን እና የክፍያ ማረጋገጫ)።");
     return;
   }
 
-  // ማስታወሻ: ይህ ለDemo ብቻ ወዲያውኑ ባላንስ ይጨምራል።
-  // እውነተኛው ስሪት Admin ማረጋገጫ ካገኘ በኋላ ብቻ ባላንስ ይጨምራል።
-  balance += amount;
-  updateBalanceUI();
-  alert("Deposit ጥያቄ ተልኳል ✅ (Demo - ወዲያውኑ ታክሏል)\nመጠን: " + amount + " ብር");
+  state.transactions.unshift({
+    id: Date.now(),
+    type: "deposit",
+    amount,
+    proof,
+    status: "pending",
+    time: new Date().toLocaleString("en-GB"),
+  });
+  saveState();
+
+  alert("🕐 Deposit ጥያቄ ተልኳል። Admin ካረጋገጠ በኋላ ባላንስዎ ላይ ይታከላል።");
   $("depositAmount").value = "";
   $("depositProof").value = "";
   closeModal("depositModal");
+  renderHistory();
 }
 
 function sendWithdraw() {
   const amount = Number($("withdrawAmount").value);
-  const account = $("withdrawAccount").value;
+  const account = $("withdrawAccount").value.trim();
 
   if (!amount || amount < 200) {
     alert("ከ200 ብር በታች Withdraw ማድረግ አይቻልም።");
@@ -563,17 +716,112 @@ function sendWithdraw() {
     alert("የክፍያ አካውንት መረጃ ይሙሉ።");
     return;
   }
-  if (amount > balance) {
+  if (amount > state.balance) {
     alert("በቂ ቀሪ ሂሳብ የለዎትም።");
     return;
   }
 
-  balance -= amount;
+  // መጠኑ ወዲያውኑ ይያዛል (reserved) ስለዚህ ሁለት ጊዜ መጠቀም አይቻልም
+  window.balance -= amount;
+  state.transactions.unshift({
+    id: Date.now(),
+    type: "withdraw",
+    amount,
+    account,
+    status: "pending",
+    time: new Date().toLocaleString("en-GB"),
+  });
+  saveState();
   updateBalanceUI();
-  alert("Withdraw ጥያቄ ተልኳል ✅");
+
+  alert("🕐 Withdraw ጥያቄ ተልኳል። Admin ካረጋገጠ በኋላ ይላካል።");
   $("withdrawAmount").value = "";
   $("withdrawAccount").value = "";
   closeModal("withdrawModal");
+  renderHistory();
+}
+
+/* =======================================================
+   History tab — real transaction + game-win records
+   ======================================================= */
+function renderHistory() {
+  const gEl = $("gameHistoryList");
+  if (state.gameHistory.length === 0) {
+    gEl.innerHTML = '<p class="muted">እስካሁን ምንም ጨዋታ አልተጫወቱም።</p>';
+  } else {
+    gEl.innerHTML = state.gameHistory.slice(0, 20).map((r) =>
+      '<div class="list-row"><span>🦁 ካርቴላ ' + r.card + ' — ' + r.pattern + '<br><span class="muted">' + r.time + '</span></span><b>+' + r.payout + ' ETB</b></div>'
+    ).join("");
+  }
+
+  const tEl = $("txnHistoryList");
+  if (state.transactions.length === 0) {
+    tEl.innerHTML = '<p class="muted">እስካሁን ምንም እንቅስቃሴ የለም።</p>';
+  } else {
+    tEl.innerHTML = state.transactions.slice(0, 20).map((t) => {
+      const label = t.type === "deposit" ? "💰 Deposit" : "💸 Withdraw";
+      const pillClass = t.status === "pending" ? "status-pill" : t.status === "approved" ? "status-pill playing" : "status-pill";
+      const pillColor = t.status === "rejected" ? "background:#b5361c;color:#fff;" : "";
+      return '<div class="list-row"><span>' + label + ' — ' + t.amount + ' ETB<br><span class="muted">' + t.time + '</span></span><span class="' + pillClass + '" style="' + pillColor + '">' + t.status + '</span></div>';
+    }).join("");
+  }
+}
+
+/* =======================================================
+   Admin panel — approve/reject deposits & withdrawals,
+   view accumulated 25% earnings.
+   In a real deployment these actions should call your
+   backend (e.g. apiRequest('/admin/approve-deposit', {id}))
+   instead of editing localStorage directly.
+   ======================================================= */
+function renderAdminPanel() {
+  $("adminEarnings").textContent = state.adminEarnings + " ETB";
+
+  const deposits = state.transactions.filter((t) => t.type === "deposit" && t.status === "pending");
+  const withdraws = state.transactions.filter((t) => t.type === "withdraw" && t.status === "pending");
+
+  const dEl = $("pendingDepositsList");
+  dEl.innerHTML = deposits.length === 0
+    ? '<p class="muted">የለም።</p>'
+    : deposits.map((t) =>
+        '<div class="list-row"><span>' + t.amount + ' ETB<br><span class="muted">Proof: ' + t.proof + '</span></span>' +
+        '<span><button onclick="approveTxn(' + t.id + ')">✅</button> <button onclick="rejectTxn(' + t.id + ')">❌</button></span></div>'
+      ).join("");
+
+  const wEl = $("pendingWithdrawsList");
+  wEl.innerHTML = withdraws.length === 0
+    ? '<p class="muted">የለም።</p>'
+    : withdraws.map((t) =>
+        '<div class="list-row"><span>' + t.amount + ' ETB<br><span class="muted">Account: ' + t.account + '</span></span>' +
+        '<span><button onclick="approveTxn(' + t.id + ')">✅</button> <button onclick="rejectTxn(' + t.id + ')">❌</button></span></div>'
+      ).join("");
+}
+
+function approveTxn(id) {
+  const t = state.transactions.find((x) => x.id === id);
+  if (!t) return;
+  t.status = "approved";
+  if (t.type === "deposit") {
+    window.balance += t.amount; // credit now that Admin confirmed the payment
+  }
+  // withdraw amounts were already reserved when requested — approving just marks it paid
+  saveState();
+  updateBalanceUI();
+  renderAdminPanel();
+  renderHistory();
+}
+
+function rejectTxn(id) {
+  const t = state.transactions.find((x) => x.id === id);
+  if (!t) return;
+  t.status = "rejected";
+  if (t.type === "withdraw") {
+    window.balance += t.amount; // refund the reserved amount
+  }
+  saveState();
+  updateBalanceUI();
+  renderAdminPanel();
+  renderHistory();
 }
 
 /* =======================================================
@@ -584,5 +832,6 @@ window.addEventListener("DOMContentLoaded", () => {
   renderStakesList();
   updateBalanceUI();
   updateProfileStats();
+  updateAdminMenuVisibility();
   setInterval(tickRooms, 1000);
 });
