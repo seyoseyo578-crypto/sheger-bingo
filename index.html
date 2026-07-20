@@ -193,29 +193,41 @@ Balance:
 + ካርቴላ ይጨምሩ
 </button>
 
-<button onclick="registerCards()">
-🎫 ካርቴላ አመዝግብ
-</button>
-
-<div id="cardList" class="hidden">
-
-<h3>1 - 250 ካርቴላ (46 እና 68 ሁሌም ነፃ ናቸው)</h3>
-
-<div id="cards"></div>
-
-</div>
-
-
 <h3>
 የተመረጡ ካርቴላዎች:
 <span id="selectedCount">0</span>
 </h3>
 
-
 <h3>
 ዋጋ:
 <span id="cardPrice">0</span> ብር
 </h3>
+
+</div>
+
+
+<!-- Full-screen card picker: opened by "+ ካርቴላ ይጨምሩ" -->
+<div id="cardList" class="cardPickerOverlay hidden">
+
+    <div class="cardPickerHeader">
+        <button class="closeBtn" onclick="closeCards()">✕</button>
+        <h2>ካርቴላ ምረጡ</h2>
+        <div class="cardPickerBalance">Balance: <b id="pickerBalance">0 ብር</b></div>
+        <div class="cardPickerHint">46 እና 68 ሁሌም ነፃ ናቸው 🆓</div>
+    </div>
+
+    <div id="cards" class="cardGrid"></div>
+
+    <div class="cardPickerFooter">
+        <div>
+            ተመርጧል: <b id="selectedCountModal">0</b>
+            &nbsp;|&nbsp;
+            ዋጋ: <b id="cardPriceModal">0</b> ብር
+        </div>
+        <button onclick="registerCards()">
+        🎫 ካርቴላ አመዝግብ
+        </button>
+    </div>
 
 </div>
 
