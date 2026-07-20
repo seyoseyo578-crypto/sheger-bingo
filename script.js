@@ -179,7 +179,9 @@ function stopCaller() {
 
 function openCards() {
     let box = document.getElementById("cardList");
-    box.classList.toggle("hidden");
+    box.classList.remove("hidden");
+
+    document.getElementById("pickerBalance").innerHTML = balance + " ብር";
 
     let cards = document.getElementById("cards");
     cards.innerHTML = "";
@@ -203,6 +205,10 @@ function openCards() {
 
         cards.appendChild(btn);
     }
+}
+
+function closeCards() {
+    document.getElementById("cardList").classList.add("hidden");
 }
 
 function selectCard(number, button) {
@@ -232,10 +238,14 @@ function selectCard(number, button) {
     }
 
     document.getElementById("balance").innerHTML = balance + " ብር";
+    document.getElementById("pickerBalance").innerHTML = balance + " ብር";
+
     document.getElementById("selectedCount").innerHTML = selectedCards.length;
+    document.getElementById("selectedCountModal").innerHTML = selectedCards.length;
 
     let unpaidTotal = selectedCards.filter(c => !FREE_CARDS.includes(c)).length * CARD_PRICE;
     document.getElementById("cardPrice").innerHTML = unpaidTotal;
+    document.getElementById("cardPriceModal").innerHTML = unpaidTotal;
 
     showSelectedCards();
 }
