@@ -305,37 +305,33 @@ body.dark .room-win-banner { background: #3a3122; color: #e0b76a; }
 body.dark .call-board { background: #241f18; border-color: #4a3f2a; }
 
 .call-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 26px repeat(15, 1fr);
   align-items: center;
-  gap: 4px;
-  overflow-x: auto;
+  gap: 2px;
 }
 
 .call-head {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
+  width: 26px;
+  height: 24px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   font-weight: bold;
-  position: sticky;
-  left: 0;
-  z-index: 2;
+  font-size: 12px;
 }
 
 .call-cell {
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 6px;
+  min-width: 0;
+  height: 24px;
+  border-radius: 5px;
   background: #f3ead6;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: bold;
   color: #7a6a3f;
 }
@@ -395,6 +391,18 @@ body.dark .cell { background: #2f2820; color: #f0e6d0; border-color: #4a3f2a; }
 }
 
 .cell.head-b, .cell.head-i, .cell.head-n, .cell.head-g, .cell.head-o { color: #fff; }
+
+/* colour-code the numbers themselves per B/I/N/G/O column */
+.cell.num-b { color: #c0392b; }
+.cell.num-i { color: #e07b1f; }
+.cell.num-n { color: #2e7d4f; }
+.cell.num-g { color: #1f5fa8; }
+.cell.num-o { color: #6a3d9a; }
+body.dark .cell.num-b { color: #ff8a7a; }
+body.dark .cell.num-i { color: #ffb877; }
+body.dark .cell.num-n { color: #7fd398; }
+body.dark .cell.num-g { color: #7fb6f2; }
+body.dark .cell.num-o { color: #c79bf0; }
 
 /* ---------- Caller ---------- */
 .active-number-box { margin: 15px 0; text-align: center; }
