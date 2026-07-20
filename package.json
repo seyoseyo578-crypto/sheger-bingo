@@ -1,0 +1,20 @@
+{
+  "name": "sheger-bingo-bot",
+  "version": "1.0.0",
+  "description": "Telegram Bot for Sheger Bingo Mini App (@sheger_bingo_game_bot)",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js",
+    "dev": "nodemon bot.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "node-telegram-bot-api": "^0.66.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
