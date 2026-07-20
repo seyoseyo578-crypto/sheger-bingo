@@ -21,6 +21,8 @@
   <button onclick="openModal('depositModal')">💰 Deposit</button>
   <button onclick="openModal('withdrawModal')">💸 Withdraw</button>
   <button onclick="darkMode()">🌓 Dark / Light</button>
+  <button id="adminLoginBtn" onclick="adminLogin()">🔑 Admin Login</button>
+  <button id="adminPanelBtn" class="hidden" onclick="switchTab('admin')">🛡️ Admin Panel</button>
   <button onclick="alert('ሸገር ቢንጎ v1.0\nለጥያቄ: Telegram Support ያግኙን።')">ℹ️ About / Support</button>
 </div>
 
@@ -86,8 +88,12 @@
   <!-- ================= HISTORY TAB ================= -->
   <div id="tab-history" class="hidden">
     <div class="panel">
-      <h3>📄 History</h3>
-      <p class="muted">እስካሁን ምንም ጨዋታ አልተጫወቱም። ጨዋታ ከተጫወቱ በኋላ እዚህ ይታያል።</p>
+      <h3>🎱 የጨዋታ ታሪክ (Game History)</h3>
+      <div id="gameHistoryList"><p class="muted">እስካሁን ምንም ጨዋታ አልተጫወቱም።</p></div>
+    </div>
+    <div class="panel">
+      <h3>📄 የገንዘብ እንቅስቃሴ (Deposit / Withdraw)</h3>
+      <div id="txnHistoryList"><p class="muted">እስካሁን ምንም እንቅስቃሴ የለም።</p></div>
     </div>
   </div>
 
@@ -123,6 +129,34 @@
     </div>
   </div>
 
+  <!-- ================= ADMIN TAB (hidden unless logged in) ================= -->
+  <div id="tab-admin" class="hidden">
+    <div class="panel">
+      <h3>🛡️ Admin Dashboard</h3>
+      <div class="list-row"><span>የAdmin ገቢ (25% ተቆራጭ)</span><b id="adminEarnings">0 ETB</b></div>
+      <button onclick="adminLogout()">🚪 Admin Logout</button>
+    </div>
+
+    <div class="panel">
+      <h3>💰 በመጠባበቅ ላይ ያሉ Deposit ጥያቄዎች</h3>
+      <div id="pendingDepositsList"><p class="muted">የለም።</p></div>
+    </div>
+
+    <div class="panel">
+      <h3>💸 በመጠባበቅ ላይ ያሉ Withdraw ጥያቄዎች</h3>
+      <div id="pendingWithdrawsList"><p class="muted">የለም።</p></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ================= Winner verification receipt ================= -->
+<div id="winModal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="modal-header"><h3>🦁 Verified Winner</h3><span class="modal-close" onclick="closeModal('winModal')">×</span></div>
+    <div id="winReceiptBody"></div>
+    <button onclick="closeModal('winModal')">እሺ</button>
+  </div>
 </div>
 
 <!-- ================= Deposit / Withdraw modals ================= -->
@@ -132,8 +166,9 @@
     <p>Telebirr: SUED<br>+251964796846</p>
     <p>ንግድ ባንክ:<br>SIED MEBRAHTU<br>1000615139126</p>
     <input id="depositAmount" type="number" placeholder="መጠን ብር">
-    <input id="depositProof" type="text" placeholder="የክፍያ ማረጋገጫ">
+    <input id="depositProof" type="text" placeholder="የክፍያ ማረጋገጫ (Transaction ID)">
     <button onclick="sendDeposit()">Deposit ላክ</button>
+    <p class="muted">✅ Admin ካረጋገጠ በኋላ ብቻ ባላንስዎ ላይ ይታከላል።</p>
   </div>
 </div>
 
@@ -144,6 +179,7 @@
     <input id="withdrawAmount" type="number" placeholder="መጠን">
     <input id="withdrawAccount" type="text" placeholder="Telebirr/CBE ቁጥር">
     <button onclick="sendWithdraw()">Withdraw ጠይቅ</button>
+    <p class="muted">🕐 መጠኑ ወዲያውኑ ከባላንስዎ ይያዛል፤ Admin ካረጋገጠ በኋላ ይላካል።</p>
   </div>
 </div>
 
