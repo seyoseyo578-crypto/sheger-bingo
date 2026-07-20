@@ -1,170 +1,332 @@
-<!DOCTYPE html>
-<html lang="am">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sheger Bingo</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
+/* =======================================================
+   Sheger Bingo — style.css
+   ======================================================= */
 
-    <!-- ራስጌ: የቢንጎ ፊደላት በየየራሳቸው ደማቅ ከለር -->
-    <div class="topbar">
-        <img src="logo.png" alt="Sheger Bingo" class="topbarLogo">
-        <h2 class="bingo-title">
-            <span class="b">B</span><span class="i">I</span><span class="n">N</span><span class="g">G</span><span class="o">O</span>
-        </h2>
-        <div class="topbarBalance">Balance: <b id="topbarBalanceValue">0 ብር</b></div>
-    </div>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
 
-    <!-- ========== TAB: 🎮 ጨዋታ (Game) ========== -->
-    <div id="tab-game" class="tabContent">
+body {
+  background: #f2f2f2;
+  color: #222;
+  transition: background .3s, color .3s;
+  padding-bottom: 30px;
+}
 
-        <div class="info">
-            <div>የካርቴላ ዋጋ: <b>10 ብር</b></div>
-            <div>Balance: <b id="balance">0 ብር</b></div>
-            <div>ሽልማት: <b id="prize">0 ብር</b></div>
-        </div>
+body.dark {
+  background: #111;
+  color: #fff;
+}
 
-        <!-- የ 1 ደቂቃ የካርቴላ መመዝገቢያ ሰዓት ቆጣሪ -->
-        <div id="timer-section" class="timer-box">
-            የካርቴላ መመዝገቢያ ጊዜ: <span id="countdown">60</span> ሰከንድ ይቀራል
-        </div>
+/* ---------- Header ---------- */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
 
-        <!-- ካርቴላ ራስጌ ማሸነፊያ (BINGO!) ቁልፍ -->
-        <div class="panel win-action-panel">
-            <button id="bingoWinBtn" class="bingo-main-btn" onclick="claimBingoWin()">🏆 BINGO! (አሸነፍኩ)</button>
-        </div>
+body.dark header {
+  background: #1c1c1c;
+}
 
-        <!-- 1ኛ. የካርቴላ መምረጫ እና የእኔ ካርቴላዎች ክፍል (ወደ ላይ መጥቷል) -->
-        <div class="panel">
-            <h2>🎫 ካርቴላ ምረጥ</h2>
-            <button id="openCardsBtn" onclick="openCards()">+ ካርቴላ ይጨምሩ</button>
-            <h3>የተመረጡ ካርቴላዎች: <span id="selectedCount">0</span></h3>
-            <h3>ዋጋ: <span id="cardPrice">0</span> ብር</h3>
-        </div>
+.logo {
+  width: 46px;
+  height: 46px;
+  object-fit: contain;
+  border-radius: 50%;
+}
 
-        <div class="panel">
-            <h2>🎫 የእኔ ካርቴላ</h2>
-            <div id="myCards"></div>
-        </div>
+header h2 {
+  font-size: 18px;
+  flex: 1;
+  margin-left: 10px;
+}
 
-        <!-- 2ኛ. የቢንጎ መጫወቻ ሰሌዳ እና ማሽን ክፍል (ወደ ታች ዝቅ ብሏል) -->
-        <div class="panel">
-            <h2>🎱 Bingo Machine</h2>
-            <div class="table-scroll">
-                <table id="bingoTable"></table>
-            </div>
-        </div>
+.menu {
+  font-size: 26px;
+  cursor: pointer;
+  padding: 4px 8px;
+}
 
-        <div class="panel">
-            <h2>🎱 Bingo Caller</h2>
-            <!-- የነበረው ማኑዋል Start/Stop በተን ሙሉ በሙሉ ጠፍቷል -->
-            <h1 id="activeNumber">-</h1>
-            <h3 style="margin-top:15px;">የተጠሩ ቁጥሮች</h3>
-            <div id="calledNumbers"></div>
-        </div>
+/* ---------- Layout ---------- */
+.container {
+  padding: 12px;
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+}
 
-        <div class="panel">
-            <h2>🏆 የጨዋታ ውጤት</h2>
-            <h3 id="winMessage">ጨዋታ በመቀጠል ላይ...</h3>
-            <h3>ሽልማት: <span id="winPrize">0</span> ብር</h3>
-        </div>
+.balance {
+  font-size: 18px;
+  margin: 10px 0;
+  font-weight: bold;
+}
 
-    </div>
+.panel {
+  background: #fff;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 12px 0;
+  text-align: left;
+  box-shadow: 0 1px 3px rgba(0,0,0,.06);
+}
 
-    <!-- ========== TAB: 🏆 ደረጃ (Leaderboard) ========== -->
-    <div id="tab-leaderboard" class="tabContent hidden">
-        <div class="panel">
-            <h2>🏆 Leaderboard</h2>
-            <p>ብዙ-ተጫዋች የደረጃ ሰንጠረዥ በቅርቡ ይመጣል።</p>
-        </div>
-    </div>
+body.dark .panel {
+  background: #1e1e1e;
+}
 
-    <!-- ========== TAB: 💰 ዋሌት (Wallet) ========== -->
-    <div id="tab-wallet" class="tabContent hidden">
-        <div class="panel">
-            <h2>💰 Deposit</h2>
-            <p>Telebirr:<br>SUED<br>+251964796846</p>
-            <p>ንግድ ባንክ:<br>SIED MEBRAHTU<br>1000615139126</p>
-            <input type="number" id="depositAmount" placeholder="የሚያስገቡት ብር">
-            <input type="text" id="depositProof" placeholder="የክፍያ ማረጋገጫ">
-            <button onclick="sendDeposit()">Deposit ላክ</button>
-        </div>
-        <div class="panel">
-            <h2>💸 Withdraw</h2>
-            <p>Minimum Withdraw: <b>200 ብር</b></p>
-            <input type="number" id="withdrawAmount" placeholder="የሚወጣው ብር">
-            <input type="text" id="withdrawAccount" placeholder="Telebirr / CBE ቁጥር">
-            <button onclick="sendWithdraw()">Withdraw ጠይቅ</button>
-        </div>
-    </div>
+.panel h3 {
+  margin-bottom: 10px;
+  font-size: 16px;
+}
 
-    <!-- ========== TAB: 👤 መገለጫ እና ማስተካከያዎች (Profile & Settings) ========== -->
-    <div id="tab-profile" class="tabContent hidden">
-        <div class="panel">
-            <h2>👤 መገለጫ</h2>
-            <h3>Balance: <span id="profileBalance">0 ብር</span></h3>
-        </div>
-        <div class="panel">
-            <h2>⚙ ማስተካከያዎች (Settings)</h2>
-            <button id="themeToggleBtn" onclick="toggleTheme()">🌙 Dark Mode</button>
-            <button id="soundToggleBtn" onclick="toggleSound()">🔊 ድምፅ በርቷል</button>
-        </div>
-    </div>
+.panel input {
+  width: 100%;
+  padding: 10px;
+  margin: 6px 0;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
 
-    <!-- Full-screen card picker ሞዳል -->
-    <div id="cardList" class="cardPickerOverlay hidden">
-        <div class="cardPickerHeader">
-            <button class="closeBtn" onclick="closeCards()">✕</button>
-            <h2>ካርቴላ ምረጡ</h2>
-            <div class="cardPickerBalance">Balance: <b id="pickerBalance">0 ብር</b></div>
-            <div class="cardPickerHint">46 እና 68 ሁሌም ነፃ ናቸው 🆓</div>
-        </div>
+body.dark .panel input {
+  background: #333;
+  border-color: #555;
+  color: #fff;
+}
 
-        <div id="cards" class="cardGrid"></div>
+button {
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin: 5px 0;
+  font-size: 14px;
+  background: #008cff;
+  color: #fff;
+}
 
-        <!-- ቁጥር ሲነካ ወዲያው ወደ ታች የሚወርድበት ሰንጠረዥ -->
-        <div class="picker-table-section">
-            <h3>የተመረጡ ካርቴላዎች ዝርዝር</h3>
-            <table id="pickerSelectedTable">
-                <thead>
-                    <tr>
-                        <th>የተመረጠ ካርቴላ</th>
-                        <th>ድርጊት</th>
-                    </tr>
-                </thead>
-                <tbody id="pickerSelectedTableBody"></tbody>
-            </table>
-        </div>
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
 
-        <div class="cardPickerFooter">
-            <div>
-                ተመርጧል: <b id="selectedCountModal">0</b>
-                &nbsp;|&nbsp;
-                ዋጋ: <b id="cardPriceModal">0</b> ብር
-            </div>
-            <button id="registerCardsBtn" onclick="registerCards()">🎫 ሁሉንም አመዝግብ</button>
-        </div>
-    </div>
+.hidden { display: none !important; }
 
-    <!-- ========== Bottom Navigation (ሁሉም ሜኑዎች ከታች ሆነዋል) ========== -->
-    <nav class="bottomNav">
-        <button class="navBtn active" id="navBtn-game" onclick="showTab('game')">
-            <span class="navIcon">🎮</span><span>ጨዋታ</span>
-        </button>
-        <button class="navBtn" id="navBtn-leaderboard" onclick="showTab('leaderboard')">
-            <span class="navIcon">🏆</span><span>ደረጃ</span>
-        </button>
-        <button class="navBtn" id="navBtn-wallet" onclick="showTab('wallet')">
-            <span class="navIcon">💰</span><span>ዋሌት</span>
-        </button>
-        <button class="navBtn" id="navBtn-profile" onclick="showTab('profile')">
-            <span class="navIcon">👤</span><span>መገለጫ</span>
-        </button>
-    </nav>
+/* ---------- Section headings ---------- */
+.section-title {
+  font-size: 17px;
+  margin: 18px 0 8px;
+  text-align: left;
+}
 
-    <script src="https://telegram.org"></script>
-    <script src="script.js"></script>
-</body>
-</html>
+/* ---------- Card selection list ---------- */
+.plus-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.plus {
+  font-size: 26px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #008cff;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-top: 10px;
+}
+
+.card-btn {
+  background: #eef4ff;
+  color: #222;
+  padding: 8px 0;
+  font-size: 13px;
+  border-radius: 6px;
+  margin: 0;
+}
+
+body.dark .card-btn {
+  background: #2a2a2a;
+  color: #fff;
+}
+
+.card-btn.selected-card {
+  background: #008cff;
+  color: #fff;
+}
+
+.card-btn.admin-card {
+  background: #ffe08a;
+  color: #7a5b00;
+}
+
+.card-btn.disabled-card {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ---------- Game table ---------- */
+#gameSection {
+  scroll-margin-top: 70px;
+}
+
+.round-status {
+  font-weight: bold;
+  margin: 8px 0;
+}
+
+.reg-countdown {
+  font-size: 14px;
+  color: #008cff;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-header-row h3 {
+  font-size: 16px;
+}
+
+.bingo-claim-btn {
+  background: #ff9f1c;
+  font-weight: bold;
+}
+
+.register-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.register-btn {
+  background: #2a9d8f;
+  flex: 1;
+}
+
+.register-btn.registered {
+  background: #4caf50;
+}
+
+/* ---------- Bingo card grid ---------- */
+.bingo-header,
+.bingo-card {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  max-width: 320px;
+  margin: 10px auto;
+}
+
+.cell {
+  aspect-ratio: 1 / 1;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #fff;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+body.dark .cell {
+  background: #2a2a2a;
+  color: #fff;
+  border-color: #444;
+}
+
+.cell.free {
+  background: #ffcc00;
+  color: #222;
+  font-size: 12px;
+}
+
+.cell.marked {
+  background: #00c853 !important;
+  color: #fff !important;
+  border: 2px solid #00863a;
+}
+
+/* Letter colors — each BINGO letter has its own identity */
+.head-b { background: #e63946; color: #fff; }
+.head-i { background: #f4a261; color: #fff; }
+.head-n { background: #2a9d8f; color: #fff; }
+.head-g { background: #457b9d; color: #fff; }
+.head-o { background: #ffb703; color: #222; }
+
+/* ---------- Caller ---------- */
+.active-number-box {
+  margin: 15px 0;
+}
+
+.active-number-box .circle {
+  width: 70px;
+  height: 70px;
+  font-size: 26px;
+  margin: 0 auto;
+}
+
+.called {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 15px 0;
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.ball-b { background: #e63946; }
+.ball-i { background: #f4a261; }
+.ball-n { background: #2a9d8f; }
+.ball-g { background: #457b9d; }
+.ball-o { background: #ffb703; color: #222; }
+
+/* ---------- Prize calculator ---------- */
+.registered-count {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+body.dark .registered-count {
+  color: #aaa;
+}
